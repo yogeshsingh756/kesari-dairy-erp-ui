@@ -82,7 +82,7 @@ export default function ProductTypeForm({
       <Box
         sx={{
           p: 3,
-          background: "linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)",
+          background: "linear-gradient(135deg, #DAA520 0%, #B8860B 100%)",
           color: "white",
           textAlign: "center"
         }}
@@ -207,9 +207,9 @@ export default function ProductTypeForm({
           sx={{
             borderRadius: 2,
             px: 3,
-            background: "linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)",
+            background: "linear-gradient(135deg, #DAA520 0%, #B8860B 100%)",
             "&:hover": {
-              background: "linear-gradient(135deg, #1b5e20 0%, #0d4f10 100%)"
+              background: "linear-gradient(135deg, #B8860B 0%, #9B7A0A 100%)"
             }
           }}
         >

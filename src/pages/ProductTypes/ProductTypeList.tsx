@@ -71,7 +71,7 @@ export default function ProductTypeList() {
         <Box
           sx={{
             p: 3,
-            background: "linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)",
+            background: "linear-gradient(135deg, #DAA520 0%, #B8860B 100%)",
             color: "white"
           }}
         >

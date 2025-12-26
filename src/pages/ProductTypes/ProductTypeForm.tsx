@@ -20,6 +20,7 @@ import {
   updateProductType,
   getProductType,
 } from "../../api/productTypes.api";
+import AppSnackbar from "../../components/AppSnackbar";
 
 interface Props {
   open: boolean;
@@ -36,6 +37,12 @@ export default function ProductTypeForm({
 }: Props) {
   const isEdit = Boolean(productTypeId);
 
+  const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
   const [form, setForm] = useState({
     name: "",
     variant: "",
@@ -47,22 +54,59 @@ export default function ProductTypeForm({
   useEffect(() => {
     if (!productTypeId) return;
 
-    getProductType(productTypeId).then((res: { data: any }) => {
-      setForm(res.data);
-    });
+    setLoading(true);
+    getProductType(productTypeId)
+      .then((res: { data: any }) => {
+        setForm(res.data);
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to load product type:', error);
+        setSnackbar({
+          type: "error",
+          message: "Failed to load product type"
+        });
+      })
+      .finally(() => setLoading(false));
   }, [productTypeId]);
 
   const submit = async () => {
-    if (!form.name || !form.unit || !form.variant) return;
-
-    if (isEdit && productTypeId) {
-      await updateProductType({ id: productTypeId, ...form });
-    } else {
-      await createProductType(form);
+    if (!form.name || !form.unit || !form.variant) {
+      setSnackbar({
+        type: "error",
+        message: "Please fill all required fields"
+      });
+      return;
     }
 
-    onSuccess();
-    onClose();
+    setLoading(true);
+    try {
+      if (isEdit && productTypeId !== undefined && productTypeId !== null) {
+        await updateProductType({ id: productTypeId, ...form });
+        setSnackbar({
+          type: "success",
+          message: "Product type updated successfully"
+        });
+      } else {
+        await createProductType(form);
+        setSnackbar({
+          type: "success",
+          message: "Product type created successfully"
+        });
+      }
+
+      onSuccess();
+      // Delay closing to allow snackbar to show
+      setTimeout(() => {
+        onClose();
+      }, 1000);
+    } catch (error) {
+      console.error('Failed to save product type:', error);
+      setSnackbar({
+        type: "error",
+        message: error instanceof Error ? error.message : "Failed to save product type"
+      });
+      setLoading(false); // Don't set loading to false in finally for success case
+    }
   };
 
   return (
@@ -203,19 +247,34 @@ export default function ProductTypeForm({
         <Button
           variant="contained"
           onClick={submit}
-          startIcon={<Save />}
+          disabled={loading}
+          startIcon={loading ? undefined : <Save />}
           sx={{
             borderRadius: 2,
             px: 3,
             background: "linear-gradient(135deg, #DAA520 0%, #B8860B 100%)",
             "&:hover": {
               background: "linear-gradient(135deg, #B8860B 0%, #9B7A0A 100%)"
+            },
+            "&:disabled": {
+              background: "#ccc",
+              color: "#666"
             }
           }}
         >
-          {isEdit ? "Update Product" : "Create Product"}
+          {loading ? "Processing..." : (isEdit ? "Update Product" : "Create Product")}
         </Button>
       </DialogActions>
+
+      {/* Snackbar */}
+      {snackbar && (
+        <AppSnackbar
+          open
+          severity={snackbar.type}
+          message={snackbar.message}
+          onClose={() => setSnackbar(null)}
+        />
+      )}
     </Dialog>
   );
 }

@@ -64,7 +64,29 @@ export default function Login() {
         }}
       >
         <Box sx={{ textAlign: "center", mb: 3 }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, color: "primary.main", mb: 1 }}>
+          <Box
+            component="img"
+            src="/kesari-logo.jpeg"
+            alt="Kesari Dairy ERP Logo"
+            sx={{
+              width: 80,
+              height: 80,
+              borderRadius: 2,
+              mb: 2,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
+            }}
+          />
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 700,
+              background: "linear-gradient(135deg, #FF9933 0%, #E67E22 100%)",
+              backgroundClip: "text",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              mb: 1
+            }}
+          >
             Kesari Dairy ERP
           </Typography>
           <Typography variant="body2" color="text.secondary">
@@ -118,7 +140,11 @@ export default function Login() {
           sx={{
             py: 1.5,
             fontSize: "1rem",
-            fontWeight: 600
+            fontWeight: 600,
+            background: "linear-gradient(135deg, #FF9933 0%, #E67E22 100%)",
+            "&:hover": {
+              background: "linear-gradient(135deg, #E67E22 0%, #D2691E 100%)"
+            }
           }}
           onClick={submit}
           disabled={loading}

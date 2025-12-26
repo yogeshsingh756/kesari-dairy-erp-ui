@@ -1,14 +1,21 @@
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Button,
   TextField,
   MenuItem,
-  CircularProgress,
+  Box,
+  Typography,
+  Avatar,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
-import Grid from "@mui/material/Grid";
+import {
+  Person,
+  PersonAdd,
+  Save,
+} from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import { createUser, updateUser, getUser } from "../../api/users.api";
 import { getRoles } from "../../api/roles.api";
@@ -126,105 +133,196 @@ export default function UserForm({
 
   return (
     <>
-      <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-        <DialogTitle>{isEdit ? "Edit User" : "Add User"}</DialogTitle>
+      <Dialog
+        open={open}
+        onClose={onClose}
+        fullWidth
+        maxWidth="sm"
+        sx={{
+          "& .MuiDialog-paper": {
+            borderRadius: 3,
+            overflow: "hidden"
+          }
+        }}
+      >
+        {/* Header */}
+        <Box
+          sx={{
+            p: 3,
+            background: "linear-gradient(135deg, #FF9933 0%, #E67E22 100%)",
+            color: "white",
+            textAlign: "center"
+          }}
+        >
+          <Avatar
+            sx={{
+              width: 64,
+              height: 64,
+              bgcolor: "rgba(255,255,255,0.2)",
+              mx: "auto",
+              mb: 2
+            }}
+          >
+            {isEdit ? <Person /> : <PersonAdd />}
+          </Avatar>
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
+            {isEdit ? "Edit User" : "Add New User"}
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.9 }}>
+            {isEdit ? "Update user information" : "Create a new user account"}
+          </Typography>
+        </Box>
 
-        <DialogContent>
-          <Grid container spacing={2} mt={1}>
-            <Grid size={12}>
-              <TextField
-                label="Full Name"
-                fullWidth
-                value={form.fullName}
-                onChange={(e) =>
-                  setForm({ ...form, fullName: e.target.value })
+        <DialogContent sx={{ p: 4 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            <TextField
+              label="Full Name"
+              fullWidth
+              value={form.fullName}
+              onChange={(e) =>
+                setForm({ ...form, fullName: e.target.value })
+              }
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
                 }
-                required
-              />
-            </Grid>
+              }}
+            />
 
-            <Grid size={12}>
-              <TextField
-                label="Username"
-                fullWidth
-                value={form.username}
-                disabled={isEdit}
-                onChange={(e) =>
-                  setForm({ ...form, username: e.target.value })
+            <TextField
+              label="Username"
+              fullWidth
+              value={form.username}
+              disabled={isEdit}
+              onChange={(e) =>
+                setForm({ ...form, username: e.target.value })
+              }
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
                 }
-                required
-              />
-            </Grid>
+              }}
+            />
 
-            <Grid size={12}>
-              <TextField
-                label="Email"
-                type="email"
-                fullWidth
-                value={form.email}
-                onChange={(e) =>
-                  setForm({ ...form, email: e.target.value })
+            <TextField
+              label="Email Address"
+              type="email"
+              fullWidth
+              value={form.email}
+              onChange={(e) =>
+                setForm({ ...form, email: e.target.value })
+              }
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
                 }
-                required
-              />
-            </Grid>
+              }}
+            />
 
             {!isEdit && (
-              <Grid size={12}>
-                <TextField
-                  label="Password"
-                  type="password"
-                  fullWidth
-                  value={form.password}
-                  onChange={(e) =>
-                    setForm({ ...form, password: e.target.value })
+              <TextField
+                label="Password"
+                type="password"
+                fullWidth
+                value={form.password}
+                onChange={(e) =>
+                  setForm({ ...form, password: e.target.value })
+                }
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
                   }
-                  required
-                />
-              </Grid>
+                }}
+              />
             )}
 
-            <Grid size={12}>
-              <TextField
-                label="Gender"
-                fullWidth
-                value={form.gender}
-                onChange={(e) =>
-                  setForm({ ...form, gender: e.target.value })
+            <TextField
+              label="Gender"
+              fullWidth
+              value={form.gender}
+              onChange={(e) =>
+                setForm({ ...form, gender: e.target.value })
+              }
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
                 }
-              />
-            </Grid>
+              }}
+            />
 
-            <Grid size={12}>
-              <TextField
-                select
-                label="Role"
-                fullWidth
-                value={form.roleId}
-                onChange={(e) =>
-                  setForm({ ...form, roleId: e.target.value })
+            <TextField
+              select
+              label="User Role"
+              fullWidth
+              value={form.roleId}
+              onChange={(e) =>
+                setForm({ ...form, roleId: e.target.value })
+              }
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
                 }
-                required
-              >
-                {roles.map((r) => (
-                  <MenuItem key={r.id} value={r.id}>
-                    {r.roleName}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-          </Grid>
+              }}
+            >
+              {roles.map((r) => (
+                <MenuItem key={r.id} value={r.id}>
+                  {r.roleName}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={form.isActive}
+                  onChange={(e) =>
+                    setForm({ ...form, isActive: e.target.checked })
+                  }
+                  color="primary"
+                />
+              }
+              label={
+                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                  Active User Account
+                </Typography>
+              }
+              sx={{
+                bgcolor: "grey.50",
+                p: 2,
+                borderRadius: 2,
+                m: 0
+              }}
+            />
+          </Box>
         </DialogContent>
 
-        <DialogActions>
-          <Button onClick={onClose}>Cancel</Button>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button
+            onClick={onClose}
+            variant="outlined"
+            sx={{ borderRadius: 2, px: 3 }}
+          >
+            Cancel
+          </Button>
           <Button
             variant="contained"
             onClick={submit}
             disabled={loading}
-            startIcon={loading && <CircularProgress size={18} />}
+            startIcon={loading ? undefined : <Save />}
+            sx={{
+              borderRadius: 2,
+              px: 3,
+              background: "linear-gradient(135deg, #FF9933 0%, #E67E22 100%)",
+              "&:hover": {
+                background: "linear-gradient(135deg, #E67E22 0%, #D2691E 100%)"
+              },
+              "&:disabled": {
+                background: "#ccc",
+                color: "#666"
+              }
+            }}
           >
-            {isEdit ? "Update" : "Create"}
+            {loading ? "Processing..." : (isEdit ? "Update User" : "Create User")}
           </Button>
         </DialogActions>
       </Dialog>

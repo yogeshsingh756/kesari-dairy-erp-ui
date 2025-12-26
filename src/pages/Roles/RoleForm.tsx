@@ -1,17 +1,25 @@
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Button,
   TextField,
   Checkbox,
   FormControlLabel,
-  CircularProgress,
+  Box,
   Typography,
-  Divider,
+  Avatar,
+  Chip,
+  FormControl,
+  FormGroup,
+  Paper,
 } from "@mui/material";
-import Grid from "@mui/material/Grid";
+import {
+  Security,
+  PersonAdd,
+  Save,
+  VpnKey,
+} from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import {
   createRole,
@@ -131,7 +139,10 @@ export default function RoleForm({
       }
 
       onSuccess();
-      onClose();
+      // Delay closing to allow snackbar to show
+      setTimeout(() => {
+        onClose();
+      }, 1000);
     } catch (e) {
       setSnackbar({
         type: "error",
@@ -142,76 +153,212 @@ export default function RoleForm({
     }
   };
 
+  const getPermissionCount = () => selected.length;
+
   return (
     <>
-      <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-        <DialogTitle>{isEdit ? "Edit Role" : "Add Role"}</DialogTitle>
+      <Dialog
+        open={open}
+        onClose={onClose}
+        fullWidth
+        maxWidth="lg"
+        sx={{
+          "& .MuiDialog-paper": {
+            borderRadius: 3,
+            overflow: "hidden",
+            maxHeight: "90vh"
+          }
+        }}
+      >
+        {/* Header */}
+        <Box
+          sx={{
+            p: 3,
+            background: "linear-gradient(135deg, #FF8C00 0%, #D2691E 100%)",
+            color: "white",
+            textAlign: "center"
+          }}
+        >
+          <Avatar
+            sx={{
+              width: 64,
+              height: 64,
+              bgcolor: "rgba(255,255,255,0.2)",
+              mx: "auto",
+              mb: 2
+            }}
+          >
+            {isEdit ? <Security /> : <PersonAdd />}
+          </Avatar>
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
+            {isEdit ? "Edit Role" : "Create New Role"}
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.9 }}>
+            {isEdit ? "Update role permissions and details" : "Define a new role with specific permissions"}
+          </Typography>
+          {selected.length > 0 && (
+            <Chip
+              label={`${getPermissionCount()} permission${getPermissionCount() !== 1 ? 's' : ''} selected`}
+              sx={{
+                mt: 2,
+                bgcolor: "rgba(255,255,255,0.2)",
+                color: "white",
+                "& .MuiChip-label": { fontWeight: 500 }
+              }}
+            />
+          )}
+        </Box>
 
-        <DialogContent>
-          <Grid container spacing={2} mt={1}>
-            <Grid size={12}>
-              <TextField
-                label="Role Name"
-                fullWidth
-                value={roleName}
-                onChange={(e) => setRoleName(e.target.value)}
-                required
-              />
-            </Grid>
+        <DialogContent sx={{ p: 4 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {/* Basic Information */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: "text.primary" }}>
+                Basic Information
+              </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                <TextField
+                  label="Role Name"
+                  fullWidth
+                  value={roleName}
+                  onChange={(e) => setRoleName(e.target.value)}
+                  required
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2,
+                    }
+                  }}
+                />
 
-            <Grid size={12}>
-              <TextField
-                label="Description"
-                fullWidth
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </Grid>
+                <TextField
+                  label="Description (Optional)"
+                  fullWidth
+                  multiline
+                  rows={3}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Enter a brief description of this role..."
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2,
+                    }
+                  }}
+                />
+              </Box>
+            </Box>
 
-            <Grid size={12}>
-              <Typography variant="subtitle1" mt={2}>
+            {/* Permissions */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: "text.primary" }}>
                 Permissions
               </Typography>
-              <Divider sx={{ mb: 1 }} />
-            </Grid>
 
-            {permissions.map((group) => (
-              <Grid size={12} key={group.moduleName}>
-                <Typography variant="subtitle2" sx={{ mt: 1 }}>
-                  {group.moduleName}
-                </Typography>
+              {permissions.length === 0 ? (
+                <Box sx={{ textAlign: "center", py: 4, color: "text.secondary" }}>
+                  <VpnKey sx={{ fontSize: 48, mb: 2, opacity: 0.5 }} />
+                  <Typography variant="body1">Loading permissions...</Typography>
+                </Box>
+              ) : (
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                  {permissions.map((group) => (
+                    <Paper
+                      key={group.moduleName}
+                      elevation={1}
+                      sx={{
+                        p: 3,
+                        borderRadius: 2,
+                        border: "1px solid",
+                        borderColor: "divider"
+                      }}
+                    >
+                      <Typography
+                        variant="subtitle1"
+                        sx={{
+                          fontWeight: 600,
+                          mb: 2,
+                          color: "primary.main",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1
+                        }}
+                      >
+                        <VpnKey fontSize="small" />
+                        {group.moduleName}
+                      </Typography>
 
-                <Grid container>
-                  {group.permissions.map((p) => (
-                    <Grid size={6} key={p.id}>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={selected.includes(p.id)}
-                            onChange={() => togglePermission(p.id)}
-                          />
-                        }
-                        label={p.permissionName}
-                      />
-                    </Grid>
+                      <FormControl component="fieldset" sx={{ width: "100%" }}>
+                        <FormGroup sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 2 }}>
+                          {group.permissions.map((permission) => (
+                            <FormControlLabel
+                              key={permission.id}
+                              control={
+                                <Checkbox
+                                  checked={selected.includes(permission.id)}
+                                  onChange={() => togglePermission(permission.id)}
+                                  sx={{
+                                    color: "primary.main",
+                                    "&.Mui-checked": {
+                                      color: "primary.main",
+                                    },
+                                  }}
+                                />
+                              }
+                              label={
+                                <Box>
+                                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                    {permission.permissionName}
+                                  </Typography>
+                                  <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                    {permission.permissionKey}
+                                  </Typography>
+                                </Box>
+                              }
+                              sx={{
+                                m: 0,
+                                alignItems: "flex-start",
+                                "& .MuiFormControlLabel-label": {
+                                  marginTop: 0.5,
+                                },
+                              }}
+                            />
+                          ))}
+                        </FormGroup>
+                      </FormControl>
+                    </Paper>
                   ))}
-                </Grid>
-              </Grid>
-            ))}
-          </Grid>
+                </Box>
+              )}
+            </Box>
+          </Box>
         </DialogContent>
 
-        <DialogActions>
-          <Button onClick={onClose}>Cancel</Button>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button
+            onClick={onClose}
+            variant="outlined"
+            sx={{ borderRadius: 2, px: 3 }}
+          >
+            Cancel
+          </Button>
           <Button
             variant="contained"
             onClick={submit}
             disabled={loading}
-            startIcon={
-              loading ? <CircularProgress size={18} /> : null
-            }
+            startIcon={loading ? undefined : <Save />}
+            sx={{
+              borderRadius: 2,
+              px: 3,
+              background: "linear-gradient(135deg, #FF8C00 0%, #D2691E 100%)",
+              "&:hover": {
+                background: "linear-gradient(135deg, #D2691E 0%, #B8651A 100%)"
+              },
+              "&:disabled": {
+                background: "#ccc",
+                color: "#666"
+              }
+            }}
           >
-            {isEdit ? "Update" : "Create"}
+            {loading ? "Processing..." : (isEdit ? "Update Role" : "Create Role")}
           </Button>
         </DialogActions>
       </Dialog>

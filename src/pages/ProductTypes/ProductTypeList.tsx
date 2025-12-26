@@ -31,6 +31,8 @@ import {
 } from "../../api/productTypes.api";
 import ProductTypeForm from "./ProductTypeForm";
 import ConfirmDialog from "../../components/ConfirmDialog";
+import Loader from "../../components/Loader";
+import AppSnackbar from "../../components/AppSnackbar";
 
 interface ProductType {
   id: number;
@@ -45,13 +47,29 @@ export default function ProductTypeList() {
   const { state } = useAuth();
 
   const [rows, setRows] = useState<ProductType[]>([]);
+  const [loading, setLoading] = useState(false);
   const [openForm, setOpenForm] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [snackbar, setSnackbar] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const load = async () => {
-    const res = await getProductTypes();
-    setRows(res.data);
+    setLoading(true);
+    try {
+      const res = await getProductTypes();
+      setRows(res.data);
+    } catch (error) {
+      console.error('Failed to load product types:', error);
+      setSnackbar({
+        type: "error",
+        message: "Failed to load product types"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -276,12 +294,40 @@ export default function ProductTypeList() {
         onClose={() => setDeleteId(null)}
         onConfirm={async () => {
           if (deleteId) {
-            await deleteProductType(deleteId);
-            setDeleteId(null);
-            load();
+            setLoading(true);
+            try {
+              await deleteProductType(deleteId);
+              setSnackbar({
+                type: "success",
+                message: "Product type deleted successfully"
+              });
+              load();
+            } catch (error) {
+              console.error('Failed to delete product type:', error);
+              setSnackbar({
+                type: "error",
+                message: "Failed to delete product type"
+              });
+            } finally {
+              setLoading(false);
+              setDeleteId(null);
+            }
           }
         }}
       />
+
+      {/* Loading */}
+      <Loader open={loading} message="Processing..." />
+
+      {/* Snackbar */}
+      {snackbar && (
+        <AppSnackbar
+          open
+          severity={snackbar.type}
+          message={snackbar.message}
+          onClose={() => setSnackbar(null)}
+        />
+      )}
     </Paper>
     </Box>
   );

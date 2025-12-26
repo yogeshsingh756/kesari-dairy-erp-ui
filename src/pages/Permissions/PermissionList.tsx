@@ -12,6 +12,7 @@ import {
   Shield,
 } from "@mui/icons-material";
 import { getPermissions } from "../../api/permissions.api";
+import Loader from "../../components/Loader";
 
 interface Permission {
   id: number;
@@ -34,11 +35,14 @@ const getChipColor = (key: string) => {
 
 export default function PermissionList() {
   const [data, setData] = useState<PermissionGroup[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
     getPermissions()
       .then((res) => setData(res.data))
-      .catch((error) => console.error('Failed to load permissions:', error));
+      .catch((error) => console.error('Failed to load permissions:', error))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -123,6 +127,9 @@ export default function PermissionList() {
           )}
         </Box>
       </Paper>
+
+      {/* Loading */}
+      <Loader open={loading} message="Loading permissions..." />
     </Box>
   );
 }

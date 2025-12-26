@@ -25,6 +25,8 @@ import { getRoles, deleteRole } from "../../api/roles.api";
 import { hasPermission } from "../../utils/hasPermission";
 import { useAuth } from "../../auth/useAuth";
 import RoleForm from "./RoleForm";
+import Loader from "../../components/Loader";
+import AppSnackbar from "../../components/AppSnackbar";
 
 interface Role {
   id: string;
@@ -36,15 +38,23 @@ export default function RoleList() {
   const { state } = useAuth();
 
   const [roles, setRoles] = useState<Role[]>([]);
+  const [loading, setLoading] = useState(false);
   const [openForm, setOpenForm] = useState(false);
   const [editId, setEditId] = useState<string | undefined>();
+  const [snackbar, setSnackbar] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const loadRoles = async () => {
+    setLoading(true);
     try {
       const res = await getRoles();
       setRoles(res.data);
     } catch (error) {
       console.error('Failed to load roles:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -58,12 +68,27 @@ export default function RoleList() {
   };
 
   const onDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this role?")) return;
+    const role = roles.find(r => r.id === id);
+    if (!role) return;
+
+    if (!window.confirm(`Delete role "${role.roleName}"?`)) return;
+
+    setLoading(true);
     try {
       await deleteRole(id);
+      setSnackbar({
+        type: "success",
+        message: `Role "${role.roleName}" deleted successfully`
+      });
       loadRoles();
     } catch (error) {
       console.error('Failed to delete role:', error);
+      setSnackbar({
+        type: "error",
+        message: "Failed to delete role"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -231,6 +256,19 @@ export default function RoleList() {
         onClose={() => setOpenForm(false)}
         onSuccess={loadRoles}
       />
+
+      {/* Loading */}
+      <Loader open={loading} message="Loading roles..." />
+
+      {/* Snackbar */}
+      {snackbar && (
+        <AppSnackbar
+          open
+          severity={snackbar.type}
+          message={snackbar.message}
+          onClose={() => setSnackbar(null)}
+        />
+      )}
     </Box>
   );
 }

@@ -5,6 +5,7 @@ import {
   IconButton,
   Menu,
   MenuItem,
+  Box,
 } from "@mui/material";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import { useState } from "react";
@@ -21,12 +22,30 @@ export default function Topbar({ drawerWidth }: Props) {
   return (
     <AppBar
       position="fixed"
-      sx={{ zIndex: 1201, ml: `${drawerWidth}px` }}
+      sx={{
+        zIndex: 1201,
+        ml: `${drawerWidth}px`,
+        background: "linear-gradient(135deg, #FF9933 0%, #E67E22 100%)",
+        boxShadow: "0 4px 20px rgba(255, 153, 51, 0.3)"
+      }}
     >
       <Toolbar>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          Kesari Dairy ERP
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
+          <Box
+            component="img"
+            src="/kesari-logo.jpeg"
+            alt="Kesari Dairy ERP Logo"
+            sx={{
+              width: 40,
+              height: 40,
+              borderRadius: 1,
+              mr: 2
+            }}
+          />
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Kesari Dairy ERP
+          </Typography>
+        </Box>
 
         <IconButton
           color="inherit"

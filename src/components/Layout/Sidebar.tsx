@@ -25,36 +25,88 @@ export default function Sidebar({ drawerWidth }: Props) {
         [`& .MuiDrawer-paper`]: {
           width: drawerWidth,
           boxSizing: "border-box",
+          background: "linear-gradient(180deg, #FFF8F0 0%, #FFE5CC 100%)",
+          borderRight: "1px solid #FFE5CC"
         },
       }}
     >
       <Toolbar />
 
-      <List>
-        <ListItemButton onClick={() => navigate("/")}>
+      <List sx={{ p: 2 }}>
+        <ListItemButton
+          onClick={() => navigate("/")}
+          sx={{
+            borderRadius: 2,
+            mb: 1,
+            "&:hover": {
+              background: "linear-gradient(135deg, #FF9933 0%, #E67E22 100%)",
+              color: "white"
+            }
+          }}
+        >
           <ListItemText primary="Dashboard" />
         </ListItemButton>
 
         {hasPermission(state.permissions, "USER_VIEW") && (
-          <ListItemButton onClick={() => navigate("/users")}>
+          <ListItemButton
+            onClick={() => navigate("/users")}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              "&:hover": {
+                background: "linear-gradient(135deg, #FF9933 0%, #E67E22 100%)",
+                color: "white"
+              }
+            }}
+          >
             <ListItemText primary="Users" />
           </ListItemButton>
         )}
 
         {hasPermission(state.permissions, "ROLE_VIEW") && (
-          <ListItemButton onClick={() => navigate("/roles")}>
+          <ListItemButton
+            onClick={() => navigate("/roles")}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              "&:hover": {
+                background: "linear-gradient(135deg, #FF8C00 0%, #D2691E 100%)",
+                color: "white"
+              }
+            }}
+          >
             <ListItemText primary="Roles" />
           </ListItemButton>
         )}
 
         {hasPermission(state.permissions, "PERMISSION_VIEW") && (
-          <ListItemButton onClick={() => navigate("/permissions")}>
+          <ListItemButton
+            onClick={() => navigate("/permissions")}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              "&:hover": {
+                background: "linear-gradient(135deg, #FFA500 0%, #CD853F 100%)",
+                color: "white"
+              }
+            }}
+          >
             <ListItemText primary="Permissions" />
           </ListItemButton>
         )}
-         {/* Product Types */}
+
         {hasPermission(state.permissions, "PRODUCT_TYPE_VIEW") && (
-          <ListItemButton onClick={() => navigate("/product-types")}>
+          <ListItemButton
+            onClick={() => navigate("/product-types")}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              "&:hover": {
+                background: "linear-gradient(135deg, #DAA520 0%, #B8860B 100%)",
+                color: "white"
+              }
+            }}
+          >
             <ListItemText primary="Product Types" />
           </ListItemButton>
         )}

@@ -9,10 +9,17 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  Box,
+  Avatar,
   IconButton,
+  Tooltip,
 } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import {
+  Security,
+  PersonAdd,
+  Edit,
+  Delete,
+} from "@mui/icons-material";
 
 import { getRoles, deleteRole } from "../../api/roles.api";
 import { hasPermission } from "../../utils/hasPermission";
@@ -33,8 +40,12 @@ export default function RoleList() {
   const [editId, setEditId] = useState<string | undefined>();
 
   const loadRoles = async () => {
-    const res = await getRoles();
-    setRoles(res.data);
+    try {
+      const res = await getRoles();
+      setRoles(res.data);
+    } catch (error) {
+      console.error('Failed to load roles:', error);
+    }
   };
 
   useEffect(() => {
@@ -48,81 +59,170 @@ export default function RoleList() {
 
   const onDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this role?")) return;
-    await deleteRole(id);
-    loadRoles();
+    try {
+      await deleteRole(id);
+      loadRoles();
+    } catch (error) {
+      console.error('Failed to delete role:', error);
+    }
   };
 
   return (
-    <Paper sx={{ p: 3, borderRadius: 2 }}>
-      {/* Header */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={2}
+    <Box sx={{ p: { xs: 2, md: 4 } }}>
+      <Paper
+        sx={{
+          borderRadius: 3,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+          overflow: "hidden"
+        }}
       >
-        <Typography variant="h6">Roles</Typography>
-
-        {hasPermission(state.permissions, "ROLE_CREATE") && (
-          <Button
-            variant="contained"
-            onClick={() => {
-              setEditId(undefined);
-              setOpenForm(true);
-            }}
+        {/* Header */}
+        <Box
+          sx={{
+            p: 3,
+            background: "linear-gradient(135deg, #FF8C00 0%, #D2691E 100%)",
+            color: "white"
+          }}
+        >
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            justifyContent="space-between"
+            alignItems={{ xs: "stretch", sm: "center" }}
+            spacing={2}
           >
-            Add Role
-          </Button>
-        )}
-      </Stack>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Avatar sx={{ bgcolor: "rgba(255,255,255,0.2)" }}>
+                <Security />
+              </Avatar>
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                  Role Management
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Manage system roles and their permissions
+                </Typography>
+              </Box>
+            </Box>
 
-      {/* Roles Table */}
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Role Name</TableCell>
-            <TableCell>Description</TableCell>
-            <TableCell width={120}>Actions</TableCell>
-          </TableRow>
-        </TableHead>
+            {hasPermission(state.permissions, "ROLE_CREATE") && (
+              <Button
+                variant="contained"
+                startIcon={<PersonAdd />}
+                sx={{
+                  bgcolor: "rgba(255,255,255,0.2)",
+                  "&:hover": {
+                    bgcolor: "rgba(255,255,255,0.3)"
+                  }
+                }}
+                onClick={() => {
+                  setEditId(undefined);
+                  setOpenForm(true);
+                }}
+              >
+                Add Role
+              </Button>
+            )}
+          </Stack>
+        </Box>
 
-        <TableBody>
-          {roles.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={3} align="center">
-                No roles found
-              </TableCell>
-            </TableRow>
-          ) : (
-            roles.map((r) => (
-              <TableRow key={r.id} hover>
-                <TableCell>{r.roleName}</TableCell>
-                <TableCell>{r.description}</TableCell>
-                <TableCell>
-                  {hasPermission(state.permissions, "ROLE_EDIT") && (
-                    <IconButton
-                      size="small"
-                      onClick={() => onEdit(r.id)}
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                  )}
-
-                  {hasPermission(state.permissions, "ROLE_DELETE") && (
-                    <IconButton
-                      size="small"
-                      color="error"
-                      onClick={() => onDelete(r.id)}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  )}
+        {/* Table */}
+        <Box sx={{ p: 3 }}>
+          <Table sx={{ minWidth: 650 }}>
+            <TableHead>
+              <TableRow sx={{ bgcolor: "grey.50" }}>
+                <TableCell sx={{ fontWeight: 600, fontSize: "0.95rem" }}>
+                  Role Name
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, fontSize: "0.95rem" }}>
+                  Description
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, fontSize: "0.95rem", width: 120 }}>
+                  Actions
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            </TableHead>
+
+            <TableBody>
+              {roles.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} sx={{ textAlign: "center", py: 6 }}>
+                    <Box sx={{ textAlign: "center", color: "text.secondary" }}>
+                      <Security sx={{ fontSize: 48, mb: 2, opacity: 0.5 }} />
+                      <Typography variant="h6">No roles found</Typography>
+                      <Typography variant="body2">
+                        Start by adding your first role
+                      </Typography>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                roles.map((r) => (
+                  <TableRow
+                    key={r.id}
+                    hover
+                    sx={{
+                      "&:hover": { bgcolor: "grey.50" },
+                      transition: "background-color 0.2s ease"
+                    }}
+                  >
+                    <TableCell>
+                      <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                        {r.roleName}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {r.description || "No description"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={1}>
+                        {hasPermission(state.permissions, "ROLE_EDIT") && (
+                          <Tooltip title="Edit Role">
+                            <IconButton
+                              size="small"
+                              sx={{
+                                bgcolor: "primary.light",
+                                color: "primary.main",
+                                "&:hover": {
+                                  bgcolor: "primary.main",
+                                  color: "white"
+                                }
+                              }}
+                              onClick={() => onEdit(r.id)}
+                            >
+                              <Edit fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+
+                        {hasPermission(state.permissions, "ROLE_DELETE") && (
+                          <Tooltip title="Delete Role">
+                            <IconButton
+                              size="small"
+                              sx={{
+                                bgcolor: "error.light",
+                                color: "error.main",
+                                "&:hover": {
+                                  bgcolor: "error.main",
+                                  color: "white"
+                                }
+                              }}
+                              onClick={() => onDelete(r.id)}
+                            >
+                              <Delete fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </Box>
+      </Paper>
 
       {/* Role Form */}
       <RoleForm
@@ -131,6 +231,6 @@ export default function RoleList() {
         onClose={() => setOpenForm(false)}
         onSuccess={loadRoles}
       />
-    </Paper>
+    </Box>
   );
 }

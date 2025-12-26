@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import {
   Paper,
   Typography,
-  Grid,
   Chip,
   Stack,
-  Divider,
   Box,
+  Avatar,
 } from "@mui/material";
-import ShieldIcon from "@mui/icons-material/Shield";
+import {
+  VpnKey,
+  Shield,
+} from "@mui/icons-material";
 import { getPermissions } from "../../api/permissions.api";
 
 interface Permission {
@@ -34,49 +36,93 @@ export default function PermissionList() {
   const [data, setData] = useState<PermissionGroup[]>([]);
 
   useEffect(() => {
-    getPermissions().then((res) => setData(res.data));
+    getPermissions()
+      .then((res) => setData(res.data))
+      .catch((error) => console.error('Failed to load permissions:', error));
   }, []);
 
   return (
-    <Paper sx={{ p: 3, borderRadius: 2 }}>
-      <Typography variant="h6" mb={2}>
-        Permissions
-      </Typography>
-
-      <Stack spacing={2}>
-        {data.map((group) => (
-          <Box key={group.moduleName}>
-            {/* Module Header */}
-            <Stack
-              direction="row"
-              alignItems="center"
-              spacing={1}
-              mb={1}
-            >
-              <ShieldIcon color="primary" fontSize="small" />
-              <Typography fontWeight={600}>
-                {group.moduleName}
+    <Box sx={{ p: { xs: 2, md: 4 } }}>
+      <Paper
+        sx={{
+          borderRadius: 3,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+          overflow: "hidden"
+        }}
+      >
+        {/* Header */}
+        <Box
+          sx={{
+            p: 3,
+            background: "linear-gradient(135deg, #FFA500 0%, #CD853F 100%)",
+            color: "white"
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Avatar sx={{ bgcolor: "rgba(255,255,255,0.2)" }}>
+              <VpnKey />
+            </Avatar>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                Permission Management
               </Typography>
-            </Stack>
-
-            {/* Permissions */}
-            <Grid container spacing={1}>
-              {group.permissions.map((p) => (
-                <Grid key={p.id}>
-                  <Chip
-                    label={p.permissionName}
-                    color={getChipColor(p.permissionKey)}
-                    size="small"
-                    variant="filled"
-                  />
-                </Grid>
-              ))}
-            </Grid>
-
-            <Divider sx={{ mt: 2 }} />
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                View all system permissions and access levels
+              </Typography>
+            </Box>
           </Box>
-        ))}
-      </Stack>
-    </Paper>
+        </Box>
+
+        {/* Content */}
+        <Box sx={{ p: 3 }}>
+          {data.length === 0 ? (
+            <Box sx={{ textAlign: "center", py: 6, color: "text.secondary" }}>
+              <VpnKey sx={{ fontSize: 48, mb: 2, opacity: 0.5 }} />
+              <Typography variant="h6">No permissions found</Typography>
+              <Typography variant="body2">
+                Permissions will be displayed here
+              </Typography>
+            </Box>
+          ) : (
+            <Stack spacing={3}>
+              {data.map((group) => (
+                <Box
+                  key={group.moduleName}
+                  sx={{
+                    p: 3,
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 2,
+                    bgcolor: "grey.50"
+                  }}
+                >
+                  {/* Module Header */}
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+                    <Shield sx={{ color: "primary.main" }} />
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                      {group.moduleName}
+                    </Typography>
+                  </Box>
+
+                  {/* Permissions */}
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                    {group.permissions.map((p) => (
+                      <Chip
+                        key={p.id}
+                        label={p.permissionName}
+                        color={getChipColor(p.permissionKey) as any}
+                        size="small"
+                        variant="filled"
+                        sx={{ fontWeight: 500 }}
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              ))}
+            </Stack>
+          )}
+        </Box>
+      </Paper>
+    </Box>
   );
 }

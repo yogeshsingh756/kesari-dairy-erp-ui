@@ -9,7 +9,20 @@ import {
   Paper,
   Typography,
   Stack,
+  Box,
+  Chip,
+  Avatar,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
+import {
+  People,
+  PersonAdd,
+  Edit,
+  Delete,
+  CheckCircle,
+  Cancel,
+} from "@mui/icons-material";
 
 import { getUsers, deleteUser } from "../../api/users.api";
 import { hasPermission } from "../../utils/hasPermission";
@@ -18,7 +31,7 @@ import { useAuth } from "../../auth/useAuth";
 import Loader from "../../components/Loader";
 import AppSnackbar from "../../components/AppSnackbar";
 import ConfirmDialog from "../../components/ConfirmDialog";
-import UserForm from "./UserForm"; // ✅ FIX 1
+import UserForm from "./UserForm";
 
 interface User {
   id: string;
@@ -86,86 +99,205 @@ export default function UserList() {
   }, []);
 
   return (
-    <Paper sx={{ p: 3, borderRadius: 2 }}>
-      {/* Header */}
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        alignItems={{ xs: "stretch", sm: "center" }}
-        spacing={2}
-        mb={3}
+    <Box sx={{ p: { xs: 2, md: 4 } }}>
+      <Paper
+        sx={{
+          borderRadius: 3,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+          overflow: "hidden"
+        }}
       >
-        <Typography variant="h6">Users</Typography>
-
-        {hasPermission(state.permissions, "USER_CREATE") && (
-          <Button
-            variant="contained"
-            onClick={() => {
-              setEditId(undefined);
-              setOpenForm(true);
-            }}
+        {/* Header */}
+        <Box
+          sx={{
+            p: 3,
+            background: "linear-gradient(135deg, #FF9933 0%, #E67E22 100%)",
+            color: "white"
+          }}
+        >
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            justifyContent="space-between"
+            alignItems={{ xs: "stretch", sm: "center" }}
+            spacing={2}
           >
-            Add User
-          </Button>
-        )}
-      </Stack>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Avatar sx={{ bgcolor: "rgba(255,255,255,0.2)" }}>
+                <People />
+              </Avatar>
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                  User Management
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Manage system users and their access levels
+                </Typography>
+              </Box>
+            </Box>
 
-      {/* Table */}
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Username</TableCell>
-            <TableCell>Role</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell width={180}>Action</TableCell>
-          </TableRow>
-        </TableHead>
+            {hasPermission(state.permissions, "USER_CREATE") && (
+              <Button
+                variant="contained"
+                startIcon={<PersonAdd />}
+                sx={{
+                  bgcolor: "rgba(255,255,255,0.2)",
+                  "&:hover": {
+                    bgcolor: "rgba(255,255,255,0.3)"
+                  }
+                }}
+                onClick={() => {
+                  setEditId(undefined);
+                  setOpenForm(true);
+                }}
+              >
+                Add User
+              </Button>
+            )}
+          </Stack>
+        </Box>
 
-        <TableBody>
-          {users.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={5} align="center">
-                No users found
-              </TableCell>
-            </TableRow>
-          ) : (
-            users.map((u) => (
-              <TableRow key={u.id} hover>
-                <TableCell>{u.fullName}</TableCell>
-                <TableCell>{u.username}</TableCell>
-                <TableCell>{u.role}</TableCell>
-                <TableCell>{u.isActive ? "Active" : "Inactive"}</TableCell>
-                <TableCell>
-                  <Stack direction="row" spacing={1}>
-                    {hasPermission(state.permissions, "USER_EDIT") && (
-                      <Button
-                        size="small"
-                        onClick={() => {
-                          setEditId(u.id);
-                          setOpenForm(true);
-                        }}
-                      >
-                        Edit
-                      </Button>
-                    )}
-
-                    {hasPermission(state.permissions, "USER_DELETE") && (
-                      <Button
-                        size="small"
-                        color="error"
-                        onClick={() => setDeleteId(u.id)}
-                      >
-                        Delete
-                      </Button>
-                    )}
-                  </Stack>
+        {/* Table */}
+        <Box sx={{ p: 3 }}>
+          <Table sx={{ minWidth: 650 }}>
+            <TableHead>
+              <TableRow sx={{ bgcolor: "grey.50" }}>
+                <TableCell sx={{ fontWeight: 600, fontSize: "0.95rem" }}>
+                  Full Name
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, fontSize: "0.95rem" }}>
+                  Username
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, fontSize: "0.95rem" }}>
+                  Role
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, fontSize: "0.95rem" }}>
+                  Status
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, fontSize: "0.95rem", width: 120 }}>
+                  Actions
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            </TableHead>
+
+            <TableBody>
+              {users.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} sx={{ textAlign: "center", py: 6 }}>
+                    <Box sx={{ textAlign: "center", color: "text.secondary" }}>
+                      <People sx={{ fontSize: 48, mb: 2, opacity: 0.5 }} />
+                      <Typography variant="h6">No users found</Typography>
+                      <Typography variant="body2">
+                        Start by adding your first user
+                      </Typography>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                users.map((u) => (
+                  <TableRow
+                    key={u.id}
+                    hover
+                    sx={{
+                      "&:hover": { bgcolor: "grey.50" },
+                      transition: "background-color 0.2s ease"
+                    }}
+                  >
+                    <TableCell>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                        <Avatar sx={{ width: 32, height: 32 }}>
+                          {u.fullName.charAt(0).toUpperCase()}
+                        </Avatar>
+                        <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                          {u.fullName}
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {u.username}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={u.role}
+                        size="small"
+                        sx={{
+                          bgcolor: "primary.light",
+                          color: "primary.contrastText",
+                          fontWeight: 500
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        {u.isActive ? (
+                          <>
+                            <CheckCircle sx={{ color: "success.main", fontSize: 18 }} />
+                            <Typography variant="body2" color="success.main">
+                              Active
+                            </Typography>
+                          </>
+                        ) : (
+                          <>
+                            <Cancel sx={{ color: "error.main", fontSize: 18 }} />
+                            <Typography variant="body2" color="error.main">
+                              Inactive
+                            </Typography>
+                          </>
+                        )}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={1}>
+                        {hasPermission(state.permissions, "USER_EDIT") && (
+                          <Tooltip title="Edit User">
+                            <IconButton
+                              size="small"
+                              sx={{
+                                bgcolor: "primary.light",
+                                color: "primary.main",
+                                "&:hover": {
+                                  bgcolor: "primary.main",
+                                  color: "white"
+                                }
+                              }}
+                              onClick={() => {
+                                setEditId(u.id);
+                                setOpenForm(true);
+                              }}
+                            >
+                              <Edit fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+
+                        {hasPermission(state.permissions, "USER_DELETE") && (
+                          <Tooltip title="Delete User">
+                            <IconButton
+                              size="small"
+                              sx={{
+                                bgcolor: "error.light",
+                                color: "error.main",
+                                "&:hover": {
+                                  bgcolor: "error.main",
+                                  color: "white"
+                                }
+                              }}
+                              onClick={() => setDeleteId(u.id)}
+                            >
+                              <Delete fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </Box>
+      </Paper>
 
       {/* Dialogs & Feedback */}
       <UserForm
@@ -192,6 +324,6 @@ export default function UserList() {
         onConfirm={confirmDelete}
         onClose={() => setDeleteId(null)}
       />
-    </Paper>
+    </Box>
   );
 }

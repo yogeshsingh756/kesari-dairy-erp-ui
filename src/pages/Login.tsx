@@ -1,4 +1,5 @@
-import { Button, Container, TextField, Typography, Box } from "@mui/material";
+import { Button, TextField, Typography, Box, Paper } from "@mui/material";
+import { Login as LoginIcon } from "@mui/icons-material";
 import { loginApi } from "../api/auth.api";
 import { useAuth } from "../auth/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -13,7 +14,18 @@ export default function Login() {
     password: "",
   });
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const submit = async () => {
+    if (!data.username || !data.password) {
+      setError("Please fill in all fields");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
     try {
       const res = await loginApi(data);
 
@@ -25,47 +37,96 @@ export default function Login() {
 
       navigate("/");
     } catch {
-      alert("Invalid username or password");
+      setError("Invalid username or password");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Container maxWidth="xs">
-      <Box mt={10}>
-        <Typography variant="h5" align="center" mb={2}>
-          Kesari Dairy ERP
-        </Typography>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(135deg, #FFF8F0 0%, #FFE5CC 100%)",
+        p: 2
+      }}
+    >
+      <Paper
+        sx={{
+          p: 4,
+          width: "100%",
+          maxWidth: 360,
+          borderRadius: 3,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.1)"
+        }}
+      >
+        <Box sx={{ textAlign: "center", mb: 3 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, color: "primary.main", mb: 1 }}>
+            Kesari Dairy ERP
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Sign in to your account
+          </Typography>
+        </Box>
 
-        <TextField
-          fullWidth
-          label="Username"
-          margin="normal"
-          value={data.username}
-          onChange={(e) =>
-            setData({ ...data, username: e.target.value })
-          }
-        />
+        {error && (
+          <Box
+            sx={{
+              bgcolor: "error.light",
+              color: "error.main",
+              p: 2,
+              borderRadius: 2,
+              mb: 2,
+              fontSize: "0.875rem",
+              textAlign: "center"
+            }}
+          >
+            {error}
+          </Box>
+        )}
 
-        <TextField
-          fullWidth
-          label="Password"
-          type="password"
-          margin="normal"
-          value={data.password}
-          onChange={(e) =>
-            setData({ ...data, password: e.target.value })
-          }
-        />
+        <Box sx={{ mb: 2 }}>
+          <TextField
+            fullWidth
+            label="Username"
+            margin="normal"
+            value={data.username}
+            onChange={(e) =>
+              setData({ ...data, username: e.target.value })
+            }
+          />
+
+          <TextField
+            fullWidth
+            label="Password"
+            type="password"
+            margin="normal"
+            value={data.password}
+            onChange={(e) =>
+              setData({ ...data, password: e.target.value })
+            }
+          />
+        </Box>
 
         <Button
           fullWidth
           variant="contained"
-          sx={{ mt: 2 }}
+          size="large"
+          sx={{
+            py: 1.5,
+            fontSize: "1rem",
+            fontWeight: 600
+          }}
           onClick={submit}
+          disabled={loading}
+          startIcon={loading ? undefined : <LoginIcon />}
         >
-          Login
+          {loading ? "Signing In..." : "Sign In"}
         </Button>
-      </Box>
-    </Container>
+      </Paper>
+    </Box>
   );
 }

@@ -1,14 +1,19 @@
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Button,
   TextField,
-  Grid,
+  Box,
   Switch,
   FormControlLabel,
+  Typography,
+  Avatar,
 } from "@mui/material";
+import {
+  Business,
+  Save,
+} from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import {
   createProductType,
@@ -42,7 +47,7 @@ export default function ProductTypeForm({
   useEffect(() => {
     if (!productTypeId) return;
 
-    getProductType(productTypeId).then((res) => {
+    getProductType(productTypeId).then((res: { data: any }) => {
       setForm(res.data);
     });
   }, [productTypeId]);
@@ -61,48 +66,92 @@ export default function ProductTypeForm({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>
-        {isEdit ? "Edit Product Type" : "Add Product Type"}
-      </DialogTitle>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      sx={{
+        "& .MuiDialog-paper": {
+          borderRadius: 3,
+          overflow: "hidden"
+        }
+      }}
+    >
+      {/* Header */}
+      <Box
+        sx={{
+          p: 3,
+          background: "linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)",
+          color: "white",
+          textAlign: "center"
+        }}
+      >
+        <Avatar
+          sx={{
+            width: 64,
+            height: 64,
+            bgcolor: "rgba(255,255,255,0.2)",
+            mx: "auto",
+            mb: 2
+          }}
+        >
+          <Business sx={{ fontSize: 32 }} />
+        </Avatar>
+        <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
+          {isEdit ? "Edit Product Type" : "Add Product Type"}
+        </Typography>
+        <Typography variant="body2" sx={{ opacity: 0.9 }}>
+          {isEdit ? "Update product specifications" : "Create a new product type"}
+        </Typography>
+      </Box>
 
-      <DialogContent>
-        <Grid container spacing={2} mt={1}>
-          <Grid item xs={12}>
-            <TextField
-              label="Name"
-              fullWidth
-              value={form.name}
-              onChange={(e) =>
-                setForm({ ...form, name: e.target.value })
+      <DialogContent sx={{ p: 4 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          <TextField
+            label="Product Name"
+            fullWidth
+            value={form.name}
+            onChange={(e) =>
+              setForm({ ...form, name: e.target.value })
+            }
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
               }
-            />
-          </Grid>
+            }}
+          />
 
-          <Grid item xs={12}>
-            <TextField
-              label="Variant (e.g. 500 ml)"
-              fullWidth
-              value={form.variant}
-              onChange={(e) =>
-                setForm({ ...form, variant: e.target.value })
+          <TextField
+            label="Variant (e.g. 500 ml)"
+            fullWidth
+            value={form.variant}
+            onChange={(e) =>
+              setForm({ ...form, variant: e.target.value })
+            }
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
               }
-            />
-          </Grid>
+            }}
+          />
 
-          <Grid item xs={6}>
+          <Box sx={{ display: "flex", gap: 2 }}>
             <TextField
-              label="Quantity(Numeric value of the unit)"
+              label="Quantity"
               type="number"
               fullWidth
               value={form.quantity}
               onChange={(e) =>
                 setForm({ ...form, quantity: Number(e.target.value) })
               }
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                }
+              }}
             />
-          </Grid>
 
-          <Grid item xs={6}>
             <TextField
               label="Unit"
               fullWidth
@@ -110,29 +159,61 @@ export default function ProductTypeForm({
               onChange={(e) =>
                 setForm({ ...form, unit: e.target.value })
               }
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                }
+              }}
             />
-          </Grid>
+          </Box>
 
-          <Grid item xs={12}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={form.isActive}
-                  onChange={(e) =>
-                    setForm({ ...form, isActive: e.target.checked })
-                  }
-                />
-              }
-              label="Active"
-            />
-          </Grid>
-        </Grid>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={form.isActive}
+                onChange={(e) =>
+                  setForm({ ...form, isActive: e.target.checked })
+                }
+                color="primary"
+              />
+            }
+            label={
+              <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                Active Product Type
+              </Typography>
+            }
+            sx={{
+              bgcolor: "grey.50",
+              p: 2,
+              borderRadius: 2,
+              m: 0
+            }}
+          />
+        </Box>
       </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button variant="contained" onClick={submit}>
-          {isEdit ? "Update" : "Create"}
+      <DialogActions sx={{ p: 3, pt: 0 }}>
+        <Button
+          onClick={onClose}
+          variant="outlined"
+          sx={{ borderRadius: 2, px: 3 }}
+        >
+          Cancel
+        </Button>
+        <Button
+          variant="contained"
+          onClick={submit}
+          startIcon={<Save />}
+          sx={{
+            borderRadius: 2,
+            px: 3,
+            background: "linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)",
+            "&:hover": {
+              background: "linear-gradient(135deg, #1b5e20 0%, #0d4f10 100%)"
+            }
+          }}
+        >
+          {isEdit ? "Update Product" : "Create Product"}
         </Button>
       </DialogActions>
     </Dialog>

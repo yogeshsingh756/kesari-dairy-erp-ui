@@ -11,6 +11,7 @@ import {
   Box,
   Avatar,
   Chip,
+  TextField,
 } from "@mui/material";
 import {
   Factory,
@@ -27,11 +28,16 @@ export default function ProductionBatchList() {
   const [loading, setLoading] = useState(false);
   const [openForm, setOpenForm] = useState(false);
   const [detailId, setDetailId] = useState<number | null>(null);
+  const [batchDateFilter, setBatchDateFilter] = useState<string>("");
 
   const load = async () => {
     setLoading(true);
     try {
-      const res = await getProductionBatches({ pageNumber: 1, pageSize: 10 });
+      const params: any = { pageNumber: 1, pageSize: 10 };
+      if (batchDateFilter) {
+        params.batchDate = batchDateFilter;
+      }
+      const res = await getProductionBatches(params);
       setRows(res.data.items);
     } catch (error) {
       console.error('Failed to load production batches:', error);
@@ -42,7 +48,7 @@ export default function ProductionBatchList() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [batchDateFilter]);
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 } }}>
@@ -90,6 +96,34 @@ export default function ProductionBatchList() {
             >
               Add Batch
             </Button>
+          </Box>
+        </Box>
+
+        {/* Filters */}
+        <Box sx={{ p: 3, borderBottom: "1px solid", borderColor: "divider" }}>
+          <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+            <TextField
+              label="Filter by Batch Date"
+              type="date"
+              value={batchDateFilter}
+              onChange={(e) => setBatchDateFilter(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              sx={{
+                minWidth: 200,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                }
+              }}
+            />
+            {batchDateFilter && (
+              <Button
+                variant="outlined"
+                onClick={() => setBatchDateFilter("")}
+                sx={{ borderRadius: 2 }}
+              >
+                Clear Filter
+              </Button>
+            )}
           </Box>
         </Box>
 

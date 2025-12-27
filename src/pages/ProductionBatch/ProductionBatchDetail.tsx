@@ -105,6 +105,9 @@ export default function ProductionBatchDetail({ id, onClose }: Props) {
                 #{data.id}
               </Typography>
               <Typography variant="body2">Batch ID</Typography>
+              <Typography variant="body2" sx={{ mt: 1, fontSize: '0.875rem', opacity: 0.9 }}>
+                {data.productName}
+              </Typography>
             </Paper>
 
             <Paper

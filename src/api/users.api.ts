@@ -11,6 +11,7 @@ export interface User {
   id: string;
   fullName: string;
   username: string;
+  mobileNumber?: string;
   password?: string;
   role: string;
   isActive: boolean;
@@ -20,6 +21,7 @@ export interface CreateUserData {
   fullName: string;
   username: string;
   password: string;
+  mobileNumber?: string;
   role: string;
   isActive: boolean;
 }
@@ -30,8 +32,8 @@ export interface UpdateUserData extends Partial<CreateUserData> {
 
 /* ---------------- USERS ---------------- */
 
-export const getUsers = () =>
-  api.get("/users", authHeader());
+export const getUsers = (search = "", pageNumber = 1, pageSize = 10) =>
+  api.get(`/users?pageNumber=${pageNumber}&pageSize=${pageSize}&search=${encodeURIComponent(search)}`, authHeader());
 
 export const getUser = (id: string) =>
   api.get(`/users/${id}`, authHeader());

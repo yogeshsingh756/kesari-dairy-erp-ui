@@ -68,10 +68,43 @@ export default function RoleForm({
   const [permissions, setPermissions] = useState<PermissionGroup[]>([]);
   const [selected, setSelected] = useState<number[]>([]);
 
+  // Handle dialog opening and form initialization
+  useEffect(() => {
+    if (!open) return; // Only run when dialog is open
+
+    if (!roleId) {
+      // Add mode: reset form
+      setRoleName("");
+      setDescription("");
+      setSelected([]);
+      setLoading(false);
+      setSnackbar(null);
+    } else {
+      // Edit mode: load data
+      setLoading(true);
+      setSnackbar(null);
+      getRoleById(roleId)
+        .then((res) => {
+          setRoleName(res.data.roleName);
+          setDescription(res.data.description || "");
+          setSelected(res.data.permissionIds || []);
+          setLoading(false); // Reset loading after successful data load
+        })
+        .catch(() =>
+          setSnackbar({ type: "error", message: "Failed to load role" })
+        )
+        .finally(() => setLoading(false));
+    }
+  }, [open, roleId]);
+
   /* -------- LOAD PERMISSIONS -------- */
   useEffect(() => {
-    getPermissions()
-      .then((res) => setPermissions(res.data))
+    getPermissions("", 1, 100) // Get all permissions for the form
+      .then((res) => {
+        // Handle both paginated and direct response formats
+        const permissionsData = res.data.items || res.data || [];
+        setPermissions(Array.isArray(permissionsData) ? permissionsData : []);
+      })
       .catch(() =>
         setSnackbar({
           type: "error",
@@ -79,23 +112,6 @@ export default function RoleForm({
         })
       );
   }, []);
-
-  /* -------- LOAD ROLE (EDIT) -------- */
-  useEffect(() => {
-    if (!roleId) return;
-
-    setLoading(true);
-    getRoleById(roleId)
-      .then((res) => {
-        setRoleName(res.data.roleName);
-        setDescription(res.data.description || "");
-        setSelected(res.data.permissionIds || []);
-      })
-      .catch(() =>
-        setSnackbar({ type: "error", message: "Failed to load role" })
-      )
-      .finally(() => setLoading(false));
-  }, [roleId]);
 
   /* -------- TOGGLE PERMISSION -------- */
   const togglePermission = (id: number) => {
@@ -173,7 +189,7 @@ export default function RoleForm({
         {/* Header */}
         <Box
           sx={{
-            p: 3,
+            p: 2,
             background: "linear-gradient(135deg, #FF8C00 0%, #D2691E 100%)",
             color: "white",
             textAlign: "center"

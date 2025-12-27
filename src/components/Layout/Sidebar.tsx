@@ -110,6 +110,22 @@ export default function Sidebar({ drawerWidth }: Props) {
             <ListItemText primary="Product Types" />
           </ListItemButton>
         )}
+
+        {hasPermission(state.permissions, "INGREDIENT_TYPE_VIEW") && (
+          <ListItemButton
+            onClick={() => navigate("/ingredient-types")}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              "&:hover": {
+                background: "linear-gradient(135deg, #FF6B35 0%, #E55A2B 100%)",
+                color: "white"
+              }
+            }}
+          >
+            <ListItemText primary="Ingredient Types" />
+          </ListItemButton>
+        )}
       </List>
     </Drawer>
   );

@@ -9,6 +9,10 @@ import {
   FormControlLabel,
   Typography,
   Avatar,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import {
   Business,
@@ -51,23 +55,40 @@ export default function ProductTypeForm({
     isActive: true,
   });
 
+  // Handle dialog opening and form initialization
   useEffect(() => {
-    if (!productTypeId) return;
+    if (!open) return; // Only run when dialog is open
 
-    setLoading(true);
-    getProductType(productTypeId)
-      .then((res: { data: any }) => {
-        setForm(res.data);
-      })
-      .catch((error: unknown) => {
-        console.error('Failed to load product type:', error);
-        setSnackbar({
-          type: "error",
-          message: "Failed to load product type"
+    if (!productTypeId) {
+      // Add mode: reset form
+      setForm({
+        name: "",
+        variant: "",
+        unit: "",
+        quantity: 0,
+        isActive: true,
+      });
+      setLoading(false);
+      setSnackbar(null);
+    } else {
+      // Edit mode: load data
+      setLoading(true);
+      setSnackbar(null);
+      getProductType(productTypeId)
+        .then((res: { data: any }) => {
+          setForm(res.data);
+          setLoading(false); // Reset loading after successful data load
+        })
+        .catch((error: unknown) => {
+          console.error('Failed to load product type:', error);
+          setSnackbar({
+            type: "error",
+            message: "Failed to load product type"
+          });
+          setLoading(false); // Reset loading on error
         });
-      })
-      .finally(() => setLoading(false));
-  }, [productTypeId]);
+    }
+  }, [open, productTypeId]);
 
   const submit = async () => {
     if (!form.name || !form.unit || !form.variant) {
@@ -122,15 +143,15 @@ export default function ProductTypeForm({
         }
       }}
     >
-      {/* Header */}
-      <Box
-        sx={{
-          p: 3,
-          background: "linear-gradient(135deg, #DAA520 0%, #B8860B 100%)",
-          color: "white",
-          textAlign: "center"
-        }}
-      >
+        {/* Header */}
+        <Box
+          sx={{
+            p: 2,
+            background: "linear-gradient(135deg, #DAA520 0%, #B8860B 100%)",
+            color: "white",
+            textAlign: "center"
+          }}
+        >
         <Avatar
           sx={{
             width: 64,
@@ -196,19 +217,30 @@ export default function ProductTypeForm({
               }}
             />
 
-            <TextField
-              label="Unit"
-              fullWidth
-              value={form.unit}
-              onChange={(e) =>
-                setForm({ ...form, unit: e.target.value })
+            <FormControl fullWidth sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
               }
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
+            }}>
+              <InputLabel>Unit</InputLabel>
+              <Select
+                value={form.unit}
+                label="Unit"
+                onChange={(e) =>
+                  setForm({ ...form, unit: e.target.value })
                 }
-              }}
-            />
+              >
+                <MenuItem value="">
+                  <em>Select Unit</em>
+                </MenuItem>
+                <MenuItem value="KG">KG</MenuItem>
+                <MenuItem value="LITER">LITER</MenuItem>
+                <MenuItem value="ML">ML</MenuItem>
+                <MenuItem value="GRAM">GRAM</MenuItem>
+                <MenuItem value="PIECE">PIECE</MenuItem>
+                <MenuItem value="PACKET">PACKET</MenuItem>
+              </Select>
+            </FormControl>
           </Box>
 
           <FormControlLabel

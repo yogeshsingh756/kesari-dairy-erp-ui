@@ -25,8 +25,8 @@ export interface UpdateRoleData extends Partial<CreateRoleData> {
 
 /* ---------------- APIS ---------------- */
 
-export const getRoles = () =>
-  api.get("/roles", auth());
+export const getRoles = (search = "", pageNumber = 1, pageSize = 10) =>
+  api.get(`/roles?pageNumber=${pageNumber}&pageSize=${pageSize}&search=${encodeURIComponent(search)}`, auth());
 
 export const getRoleById = (id: string) =>
   api.get(`/roles/${id}`, auth());

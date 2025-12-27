@@ -13,12 +13,16 @@ import {
   Avatar,
   IconButton,
   Tooltip,
+  TextField,
+  InputAdornment,
+  TablePagination,
 } from "@mui/material";
 import {
   Security,
   PersonAdd,
   Edit,
   Delete,
+  Search,
 } from "@mui/icons-material";
 
 import { getRoles, deleteRole } from "../../api/roles.api";
@@ -38,6 +42,7 @@ export default function RoleList() {
   const { state } = useAuth();
 
   const [roles, setRoles] = useState<Role[]>([]);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(false);
   const [openForm, setOpenForm] = useState(false);
   const [editId, setEditId] = useState<string | undefined>();
@@ -46,13 +51,23 @@ export default function RoleList() {
     message: string;
   } | null>(null);
 
-  const loadRoles = async () => {
+  // Pagination & Search
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [search, setSearch] = useState("");
+
+  const loadRoles = async (searchTerm = search, pageNum = page, pageSize = rowsPerPage) => {
     setLoading(true);
     try {
-      const res = await getRoles();
-      setRoles(res.data);
+      const res = await getRoles(searchTerm, pageNum + 1, pageSize); // API uses 1-based indexing
+      setRoles(res.data.items || res.data);
+      setTotalRecords(res.data.totalRecords || res.data.length || 0);
     } catch (error) {
       console.error('Failed to load roles:', error);
+      setSnackbar({
+        type: "error",
+        message: "Failed to load roles"
+      });
     } finally {
       setLoading(false);
     }
@@ -61,6 +76,21 @@ export default function RoleList() {
   useEffect(() => {
     loadRoles();
   }, []);
+
+  // Effect for pagination and search changes
+  useEffect(() => {
+    loadRoles(search, page, rowsPerPage);
+  }, [page, rowsPerPage]);
+
+  // Debounced search effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setPage(0); // Reset to first page when searching
+      loadRoles(search, 0, rowsPerPage);
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [search]);
 
   const onEdit = (id: string) => {
     setEditId(id);
@@ -150,8 +180,35 @@ export default function RoleList() {
           </Stack>
         </Box>
 
+        {/* Search & Filters */}
+        <Box sx={{ p: 3, pt: 0 }}>
+          <TextField
+            fullWidth
+            variant="outlined"
+            placeholder="Search roles by name or description..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(0); // Reset to first page when searching
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search sx={{ color: "text.secondary" }} />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              maxWidth: 400,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
+              }
+            }}
+          />
+        </Box>
+
         {/* Table */}
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ p: 3, pt: 0 }}>
           <Table sx={{ minWidth: 650 }}>
             <TableHead>
               <TableRow sx={{ bgcolor: "grey.50" }}>
@@ -246,6 +303,29 @@ export default function RoleList() {
               )}
             </TableBody>
           </Table>
+
+          {/* Pagination */}
+          <TablePagination
+            component="div"
+            count={totalRecords}
+            page={page}
+            onPageChange={(_event, newPage) => {
+              setPage(newPage);
+            }}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={(event) => {
+              setRowsPerPage(parseInt(event.target.value, 10));
+              setPage(0);
+            }}
+            rowsPerPageOptions={[5, 10, 25, 50]}
+            sx={{
+              borderTop: "1px solid",
+              borderColor: "divider",
+              "& .MuiTablePagination-toolbar": {
+                py: 2,
+              },
+            }}
+          />
         </Box>
       </Paper>
 

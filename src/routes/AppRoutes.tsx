@@ -8,6 +8,7 @@ import UserList from "../pages/Users/UserList";
 import RoleList from "../pages/Roles/RoleList";
 import PermissionList from "../pages/Permissions/PermissionList";
 import ProductTypeList from "../pages/ProductTypes/ProductTypeList";
+import IngredientTypeList from "../pages/IngredientTypes/IngredientTypeList";
 
 export default function AppRoutes() {
   return (
@@ -26,6 +27,7 @@ export default function AppRoutes() {
         <Route path="/roles" element={<RoleList />} />
         <Route path="/permissions" element={<PermissionList />} />
         <Route path="/product-types" element={<ProductTypeList />} />
+        <Route path="/ingredient-types" element={<IngredientTypeList />} />
       </Route>
     </Routes>
   );

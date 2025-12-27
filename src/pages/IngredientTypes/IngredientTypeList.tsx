@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import {
+  Button,
   Paper,
   Typography,
+  Stack,
   Table,
   TableHead,
   TableRow,
   TableCell,
   TableBody,
-  Button,
-  Stack,
   Box,
   Avatar,
   IconButton,
@@ -19,38 +19,37 @@ import {
   TablePagination,
 } from "@mui/material";
 import {
-  Business,
+  Restaurant,
   Add,
   Edit,
   Delete,
-  CheckCircle,
-  Cancel,
   Search,
+  MonetizationOn,
 } from "@mui/icons-material";
+
 import { useAuth } from "../../auth/useAuth";
 import { hasPermission } from "../../utils/hasPermission";
 import {
-  getProductTypes,
-  deleteProductType,
-} from "../../api/productTypes.api";
-import ProductTypeForm from "./ProductTypeForm";
+  getIngredientTypes,
+  deleteIngredientType,
+} from "../../api/ingredientTypes.api";
+import IngredientTypeForm from "./IngredientTypeForm";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import Loader from "../../components/Loader";
 import AppSnackbar from "../../components/AppSnackbar";
 
-interface ProductType {
+interface IngredientType {
   id: number;
   name: string;
-  variant: string;
   unit: string;
-  quantity: number;
-  isActive: boolean;
+  costPerUnit: number;
+  description: string;
 }
 
-export default function ProductTypeList() {
+export default function IngredientTypeList() {
   const { state } = useAuth();
 
-  const [rows, setRows] = useState<ProductType[]>([]);
+  const [rows, setRows] = useState<IngredientType[]>([]);
   const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(false);
   const [openForm, setOpenForm] = useState(false);
@@ -69,14 +68,14 @@ export default function ProductTypeList() {
   const load = async (searchTerm = search, pageNum = page, pageSize = rowsPerPage) => {
     setLoading(true);
     try {
-      const res = await getProductTypes(searchTerm, pageNum + 1, pageSize); // API uses 1-based indexing
+      const res = await getIngredientTypes(searchTerm, pageNum + 1, pageSize); // API uses 1-based indexing
       setRows(res.data.items || res.data);
       setTotalRecords(res.data.totalRecords || res.data.length || 0);
     } catch (error) {
-      console.error('Failed to load product types:', error);
+      console.error('Failed to load ingredient types:', error);
       setSnackbar({
         type: "error",
-        message: "Failed to load product types"
+        message: "Failed to load ingredient types"
       });
     } finally {
       setLoading(false);
@@ -102,6 +101,38 @@ export default function ProductTypeList() {
     return () => clearTimeout(timeoutId);
   }, [search]);
 
+  const onEdit = (id: number) => {
+    setEditId(id);
+    setOpenForm(true);
+  };
+
+  const onDelete = async (id: number) => {
+    setDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+
+    setLoading(true);
+    try {
+      await deleteIngredientType(deleteId);
+      setSnackbar({
+        type: "success",
+        message: "Ingredient type deleted successfully"
+      });
+      load();
+    } catch (error) {
+      console.error('Failed to delete ingredient type:', error);
+      setSnackbar({
+        type: "error",
+        message: "Failed to delete ingredient type"
+      });
+    } finally {
+      setLoading(false);
+      setDeleteId(null);
+    }
+  };
+
   return (
     <Box sx={{ p: { xs: 2, md: 4 } }}>
       <Paper
@@ -115,7 +146,7 @@ export default function ProductTypeList() {
         <Box
           sx={{
             p: 3,
-            background: "linear-gradient(135deg, #DAA520 0%, #B8860B 100%)",
+            background: "linear-gradient(135deg, #FF6B35 0%, #E55A2B 100%)",
             color: "white"
           }}
         >
@@ -127,19 +158,19 @@ export default function ProductTypeList() {
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
               <Avatar sx={{ bgcolor: "rgba(255,255,255,0.2)" }}>
-                <Business />
+                <Restaurant />
               </Avatar>
               <Box>
                 <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                  Product Type Management
+                  Ingredient Type Management
                 </Typography>
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Manage dairy product types and specifications
+                  Manage dairy ingredients and their specifications
                 </Typography>
               </Box>
             </Box>
 
-            {hasPermission(state.permissions, "PRODUCT_TYPE_CREATE") && (
+            {hasPermission(state.permissions, "INGREDIENT_TYPE_CREATE") && (
               <Button
                 variant="contained"
                 startIcon={<Add />}
@@ -154,7 +185,7 @@ export default function ProductTypeList() {
                   setOpenForm(true);
                 }}
               >
-                Add Product Type
+                Add Ingredient Type
               </Button>
             )}
           </Stack>
@@ -165,7 +196,7 @@ export default function ProductTypeList() {
           <TextField
             fullWidth
             variant="outlined"
-            placeholder="Search product types by name, variant, or unit..."
+            placeholder="Search ingredient types by name, unit, or description..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -193,19 +224,16 @@ export default function ProductTypeList() {
             <TableHead>
               <TableRow sx={{ bgcolor: "grey.50" }}>
                 <TableCell sx={{ fontWeight: 600, fontSize: "0.95rem" }}>
-                  Product Name
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: "0.95rem" }}>
-                  Variant
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: "0.95rem" }}>
-                  Quantity
+                  Ingredient Name
                 </TableCell>
                 <TableCell sx={{ fontWeight: 600, fontSize: "0.95rem" }}>
                   Unit
                 </TableCell>
                 <TableCell sx={{ fontWeight: 600, fontSize: "0.95rem" }}>
-                  Status
+                  Cost per Unit
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, fontSize: "0.95rem" }}>
+                  Description
                 </TableCell>
                 <TableCell sx={{ fontWeight: 600, fontSize: "0.95rem", width: 120 }}>
                   Actions
@@ -216,12 +244,12 @@ export default function ProductTypeList() {
             <TableBody>
               {rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} sx={{ textAlign: "center", py: 6 }}>
+                  <TableCell colSpan={5} sx={{ textAlign: "center", py: 6 }}>
                     <Box sx={{ textAlign: "center", color: "text.secondary" }}>
-                      <Business sx={{ fontSize: 48, mb: 2, opacity: 0.5 }} />
-                      <Typography variant="h6">No product types found</Typography>
+                      <Restaurant sx={{ fontSize: 48, mb: 2, opacity: 0.5 }} />
+                      <Typography variant="h6">No ingredient types found</Typography>
                       <Typography variant="body2">
-                        Start by adding your first product type
+                        Start by adding your first ingredient type
                       </Typography>
                     </Box>
                   </TableCell>
@@ -243,7 +271,7 @@ export default function ProductTypeList() {
                     </TableCell>
                     <TableCell>
                       <Chip
-                        label={r.variant}
+                        label={r.unit}
                         size="small"
                         sx={{
                           bgcolor: "primary.light",
@@ -253,38 +281,22 @@ export default function ProductTypeList() {
                       />
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {r.quantity}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {r.unit}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        {r.isActive ? (
-                          <>
-                            <CheckCircle sx={{ color: "success.main", fontSize: 18 }} />
-                            <Typography variant="body2" color="success.main">
-                              Active
-                            </Typography>
-                          </>
-                        ) : (
-                          <>
-                            <Cancel sx={{ color: "error.main", fontSize: 18 }} />
-                            <Typography variant="body2" color="error.main">
-                              Inactive
-                            </Typography>
-                          </>
-                        )}
+                        <MonetizationOn sx={{ color: "success.main", fontSize: 18 }} />
+                        <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                          ₹{r.costPerUnit.toFixed(2)}
+                        </Typography>
                       </Box>
                     </TableCell>
                     <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {r.description || "No description"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
                       <Stack direction="row" spacing={1}>
-                        {hasPermission(state.permissions, "PRODUCT_TYPE_EDIT") && (
-                          <Tooltip title="Edit Product Type">
+                        {hasPermission(state.permissions, "INGREDIENT_TYPE_EDIT") && (
+                          <Tooltip title="Edit Ingredient Type">
                             <IconButton
                               size="small"
                               sx={{
@@ -295,18 +307,15 @@ export default function ProductTypeList() {
                                   color: "white"
                                 }
                               }}
-                              onClick={() => {
-                                setEditId(r.id);
-                                setOpenForm(true);
-                              }}
+                              onClick={() => onEdit(r.id)}
                             >
                               <Edit fontSize="small" />
                             </IconButton>
                           </Tooltip>
                         )}
 
-                        {hasPermission(state.permissions, "PRODUCT_TYPE_DELETE") && (
-                          <Tooltip title="Delete Product Type">
+                        {hasPermission(state.permissions, "INGREDIENT_TYPE_DELETE") && (
+                          <Tooltip title="Delete Ingredient Type">
                             <IconButton
                               size="small"
                               sx={{
@@ -317,7 +326,7 @@ export default function ProductTypeList() {
                                   color: "white"
                                 }
                               }}
-                              onClick={() => setDeleteId(r.id)}
+                              onClick={() => onDelete(r.id)}
                             >
                               <Delete fontSize="small" />
                             </IconButton>
@@ -354,11 +363,12 @@ export default function ProductTypeList() {
             }}
           />
         </Box>
+      </Paper>
 
       {/* Form */}
-      <ProductTypeForm
+      <IngredientTypeForm
         open={openForm}
-        productTypeId={editId ?? undefined}
+        ingredientTypeId={editId ?? undefined}
         onClose={() => setOpenForm(false)}
         onSuccess={load}
       />
@@ -366,30 +376,9 @@ export default function ProductTypeList() {
       {/* Delete Confirm */}
       <ConfirmDialog
         open={!!deleteId}
-        title="Delete this product type?"
+        title="Delete this ingredient type?"
         onClose={() => setDeleteId(null)}
-        onConfirm={async () => {
-          if (deleteId) {
-            setLoading(true);
-            try {
-              await deleteProductType(deleteId);
-              setSnackbar({
-                type: "success",
-                message: "Product type deleted successfully"
-              });
-              load();
-            } catch (error) {
-              console.error('Failed to delete product type:', error);
-              setSnackbar({
-                type: "error",
-                message: "Failed to delete product type"
-              });
-            } finally {
-              setLoading(false);
-              setDeleteId(null);
-            }
-          }
-        }}
+        onConfirm={confirmDelete}
       />
 
       {/* Loading */}
@@ -404,7 +393,6 @@ export default function ProductTypeList() {
           onClose={() => setSnackbar(null)}
         />
       )}
-    </Paper>
     </Box>
   );
 }

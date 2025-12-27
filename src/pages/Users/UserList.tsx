@@ -14,6 +14,9 @@ import {
   Avatar,
   IconButton,
   Tooltip,
+  TextField,
+  InputAdornment,
+  TablePagination,
 } from "@mui/material";
 import {
   People,
@@ -22,6 +25,7 @@ import {
   Delete,
   CheckCircle,
   Cancel,
+  Search,
 } from "@mui/icons-material";
 
 import { getUsers, deleteUser } from "../../api/users.api";
@@ -37,6 +41,7 @@ interface User {
   id: string;
   fullName: string;
   username: string;
+  mobileNumber?: string;
   role: string;
   isActive: boolean;
 }
@@ -45,6 +50,7 @@ export default function UserList() {
   const { state } = useAuth();
 
   const [users, setUsers] = useState<User[]>([]);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const [openForm, setOpenForm] = useState(false);
@@ -57,11 +63,18 @@ export default function UserList() {
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const loadUsers = async () => {
+  // Pagination & Search
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [search, setSearch] = useState("");
+  const [isAutoFilling, setIsAutoFilling] = useState(false);
+
+  const loadUsers = async (searchTerm = search, pageNum = page, pageSize = rowsPerPage) => {
     setLoading(true);
     try {
-      const res = await getUsers();
-      setUsers(res.data);
+      const res = await getUsers(searchTerm, pageNum + 1, pageSize); // API uses 1-based indexing
+      setUsers(res.data.items || res.data);
+      setTotalRecords(res.data.totalRecords || res.data.length || 0);
     } catch (err: unknown) {
       setSnackbar({
         type: "error",
@@ -97,6 +110,26 @@ export default function UserList() {
   useEffect(() => {
     loadUsers();
   }, []);
+
+  // Effect for pagination and search changes
+  useEffect(() => {
+    loadUsers(search, page, rowsPerPage);
+  }, [page, rowsPerPage]);
+
+  // Debounced search effect - skip when auto-filling
+  useEffect(() => {
+    if (isAutoFilling) {
+      setIsAutoFilling(false); // Reset flag
+      return; // Don't trigger search effect for auto-fill
+    }
+
+    const timeoutId = setTimeout(() => {
+      setPage(0); // Reset to first page when searching
+      loadUsers(search, 0, rowsPerPage);
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [search, isAutoFilling]);
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 } }}>
@@ -156,8 +189,35 @@ export default function UserList() {
           </Stack>
         </Box>
 
+        {/* Search & Filters */}
+        <Box sx={{ p: 3, pt: 0 }}>
+          <TextField
+            fullWidth
+            variant="outlined"
+            placeholder="Search users by name, username, or email..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(0); // Reset to first page when searching
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search sx={{ color: "text.secondary" }} />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              maxWidth: 400,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
+              }
+            }}
+          />
+        </Box>
+
         {/* Table */}
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ p: 3, pt: 0 }}>
           <Table sx={{ minWidth: 650 }}>
             <TableHead>
               <TableRow sx={{ bgcolor: "grey.50" }}>
@@ -166,6 +226,9 @@ export default function UserList() {
                 </TableCell>
                 <TableCell sx={{ fontWeight: 600, fontSize: "0.95rem" }}>
                   Username
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, fontSize: "0.95rem" }}>
+                  Mobile Number
                 </TableCell>
                 <TableCell sx={{ fontWeight: 600, fontSize: "0.95rem" }}>
                   Role
@@ -182,7 +245,7 @@ export default function UserList() {
             <TableBody>
               {users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} sx={{ textAlign: "center", py: 6 }}>
+                  <TableCell colSpan={6} sx={{ textAlign: "center", py: 6 }}>
                     <Box sx={{ textAlign: "center", color: "text.secondary" }}>
                       <People sx={{ fontSize: 48, mb: 2, opacity: 0.5 }} />
                       <Typography variant="h6">No users found</Typography>
@@ -215,6 +278,11 @@ export default function UserList() {
                     <TableCell>
                       <Typography variant="body2" color="text.secondary">
                         {u.username}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {u.mobileNumber || "Not provided"}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -296,6 +364,29 @@ export default function UserList() {
               )}
             </TableBody>
           </Table>
+
+          {/* Pagination */}
+          <TablePagination
+            component="div"
+            count={totalRecords}
+            page={page}
+            onPageChange={(_event, newPage) => {
+              setPage(newPage);
+            }}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={(event) => {
+              setRowsPerPage(parseInt(event.target.value, 10));
+              setPage(0);
+            }}
+            rowsPerPageOptions={[5, 10, 25, 50]}
+            sx={{
+              borderTop: "1px solid",
+              borderColor: "divider",
+              "& .MuiTablePagination-toolbar": {
+                py: 2,
+              },
+            }}
+          />
         </Box>
       </Paper>
 
@@ -304,7 +395,9 @@ export default function UserList() {
         open={openForm}
         userId={editId}
         onClose={() => setOpenForm(false)}
-        onSuccess={loadUsers}
+        onSuccess={() => {
+          loadUsers();
+        }}
       />
 
       <Loader open={loading} />

@@ -5,6 +5,9 @@ import {
   Button,
   TextField,
   MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
   Box,
   Typography,
   Avatar,
@@ -24,7 +27,7 @@ import AppSnackbar from "../../components/AppSnackbar";
 interface Props {
   open: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (userData?: any) => void;
   userId?: string; // edit mode if present
 }
 
@@ -53,42 +56,72 @@ export default function UserForm({
     username: "",
     email: "",
     password: "",
+    mobileNumber: "",
     gender: "",
     roleId: "",
     isActive: true,
   });
 
+  // Handle dialog opening and form initialization
+  useEffect(() => {
+    if (!open) return; // Only run when dialog is open
+
+    if (!userId) {
+      // Add mode: reset form
+      setForm({
+        fullName: "",
+        username: "",
+        email: "",
+        password: "",
+        mobileNumber: "",
+        gender: "",
+        roleId: "",
+        isActive: true,
+      });
+      setLoading(false);
+      setSnackbar(null);
+    } else {
+      // Edit mode: load data
+      setLoading(true);
+      setSnackbar(null);
+      getUser(userId)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .then((res: { data: any }) => {
+          setForm({
+            fullName: res.data.fullName,
+            username: res.data.username,
+            email: res.data.email,
+            mobileNumber: res.data.mobileNumber || "",
+            password: "",
+            gender: res.data.gender || "",
+            roleId: res.data.roleId,
+            isActive: res.data.isActive,
+          });
+          setLoading(false); // Reset loading after successful data load
+        })
+        .catch(() =>
+          setSnackbar({
+            type: "error",
+            message: "Failed to load user",
+          })
+        )
+        .finally(() => setLoading(false));
+    }
+  }, [open, userId]);
+
   /* -------- LOAD ROLES -------- */
   useEffect(() => {
-    getRoles().then((res: { data: Role[] }) => setRoles(res.data));
-  }, []);
-
-  /* -------- LOAD USER (EDIT) -------- */
-  useEffect(() => {
-    if (!userId) return;
-
-    setLoading(true);
-    getUser(userId)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getRoles("", 1, 100) // Get all roles for the dropdown, no search, page 1, large page size
       .then((res: { data: any }) => {
-        setForm({
-          fullName: res.data.fullName,
-          username: res.data.username,
-          email: res.data.email,
-          password: "",
-          gender: res.data.gender || "",
-          roleId: res.data.roleId,
-          isActive: res.data.isActive,
-        });
+        // Handle both old and new API response formats
+        const rolesData = res.data.items || res.data || [];
+        setRoles(Array.isArray(rolesData) ? rolesData : []);
       })
-      .catch(() =>
-        setSnackbar({
-          type: "error",
-          message: "Failed to load user",
-        })
-      )
-      .finally(() => setLoading(false));
-  }, [userId]);
+      .catch((error) => {
+        console.error('Failed to load roles:', error);
+        setRoles([]); // Set empty array on error
+      });
+  }, []);
 
   /* -------- SUBMIT -------- */
   const submit = async () => {
@@ -119,7 +152,9 @@ export default function UserForm({
         });
       }
 
-      onSuccess();
+      // Pass the created/updated user data to onSuccess callback
+      const userData = isEdit ? { ...form, id: userId } : { ...form, id: "temp" };
+      onSuccess(userData);
       onClose();
     } catch (e: unknown) {
       setSnackbar({
@@ -148,7 +183,7 @@ export default function UserForm({
         {/* Header */}
         <Box
           sx={{
-            p: 3,
+            p: 2,
             background: "linear-gradient(135deg, #FF9933 0%, #E67E22 100%)",
             color: "white",
             textAlign: "center"
@@ -219,6 +254,22 @@ export default function UserForm({
               }}
             />
 
+            <TextField
+              label="Mobile Number"
+              type="tel"
+              fullWidth
+              value={form.mobileNumber}
+              onChange={(e) =>
+                setForm({ ...form, mobileNumber: e.target.value })
+              }
+              placeholder="Enter mobile number (optional)"
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                }
+              }}
+            />
+
             {!isEdit && (
               <TextField
                 label="Password"
@@ -236,19 +287,27 @@ export default function UserForm({
               />
             )}
 
-            <TextField
-              label="Gender"
-              fullWidth
-              value={form.gender}
-              onChange={(e) =>
-                setForm({ ...form, gender: e.target.value })
+            <FormControl fullWidth sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
               }
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
+            }}>
+              <InputLabel>Gender</InputLabel>
+              <Select
+                value={form.gender}
+                label="Gender"
+                onChange={(e) =>
+                  setForm({ ...form, gender: e.target.value })
                 }
-              }}
-            />
+              >
+                <MenuItem value="">
+                  <em>Select Gender</em>
+                </MenuItem>
+                <MenuItem value="Male">Male</MenuItem>
+                <MenuItem value="Female">Female</MenuItem>
+                <MenuItem value="Others">Others</MenuItem>
+              </Select>
+            </FormControl>
 
             <TextField
               select

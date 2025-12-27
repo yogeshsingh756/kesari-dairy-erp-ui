@@ -5,9 +5,9 @@ const auth = () => ({
   },
 });
 
-// GET all product types
-export const getProductTypes = () =>
-  api.get("/product-types", auth());
+// GET all product types with pagination and search
+export const getProductTypes = (search = "", pageNumber = 1, pageSize = 10) =>
+  api.get(`/product-types?pageNumber=${pageNumber}&pageSize=${pageSize}&search=${encodeURIComponent(search)}`, auth());
 
 // GET single product type
 export const getProductType = (id: number) =>

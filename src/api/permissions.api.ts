@@ -21,5 +21,5 @@ const auth = () => ({
   },
 });
 
-export const getPermissions = () =>
-  api.get<PermissionGroup[]>("/permissions", auth());
+export const getPermissions = (search = "", pageNumber = 1, pageSize = 10) =>
+  api.get(`/permissions?pageNumber=${pageNumber}&pageSize=${pageSize}&search=${encodeURIComponent(search)}`, auth());

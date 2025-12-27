@@ -172,9 +172,11 @@ export default function ProductionBatchDetail({ id, onClose }: Props) {
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                      Product ID:
+                      Product:
                     </Typography>
-                    <Chip label={data.productId} variant="outlined" />
+                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                      {data.productName}
+                    </Typography>
                   </Box>
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <Typography variant="body1" sx={{ fontWeight: 500 }}>

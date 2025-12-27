@@ -108,7 +108,7 @@ export default function ProductionBatchList() {
               <TableHead>
                 <TableRow sx={{ bgcolor: "grey.50" }}>
                   <TableCell sx={{ fontWeight: 600 }}>ID</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Product ID</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Product Name</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Batch Quantity</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Unit</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Base Price/Unit</TableCell>
@@ -142,7 +142,7 @@ export default function ProductionBatchList() {
                       />
                     </TableCell>
                     <TableCell sx={{ fontWeight: 500 }}>
-                      {r.productId}
+                      {r.productName}
                     </TableCell>
                     <TableCell sx={{ fontWeight: 500 }}>
                       {r.batchQuantity}

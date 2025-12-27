@@ -126,6 +126,22 @@ export default function Sidebar({ drawerWidth }: Props) {
             <ListItemText primary="Ingredient Types" />
           </ListItemButton>
         )}
+
+        {hasPermission(state.permissions, "PRODUCTION_BATCH_VIEW") && (
+          <ListItemButton
+            onClick={() => navigate("/production-batches")}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              "&:hover": {
+                background: "linear-gradient(135deg, #FF6347 0%, #FF4500 100%)",
+                color: "white"
+              }
+            }}
+          >
+            <ListItemText primary="Production Batches" />
+          </ListItemButton>
+        )}
       </List>
     </Drawer>
   );

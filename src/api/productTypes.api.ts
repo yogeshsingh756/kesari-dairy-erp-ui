@@ -22,3 +22,5 @@ export const updateProductType = (data: any) =>
 // DELETE
 export const deleteProductType = (id: number) =>
   api.delete(`/product-types/${id}`, auth());
+export const getProductDropdown = () =>
+  api.get("/product-types/dropdown",auth());

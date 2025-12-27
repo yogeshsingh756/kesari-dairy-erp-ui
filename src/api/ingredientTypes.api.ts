@@ -43,3 +43,6 @@ export const updateIngredientType = (data: UpdateIngredientTypeData) =>
 
 export const deleteIngredientType = (id: number) =>
   api.delete(`/ingredient-types/${id}`, auth());
+
+export const getIngredientDropdown = () =>
+  api.get("/ingredient-types/dropdown", auth());

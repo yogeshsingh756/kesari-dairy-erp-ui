@@ -78,7 +78,7 @@ export default function ProductionBatchDetail({ id, onClose }: Props) {
           <Factory sx={{ fontSize: 32 }} />
         </Avatar>
         <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
-          Production Batch #{data.id}
+          Production Batch #{data.id} - {data.productName}
         </Typography>
         <Typography variant="body2" sx={{ opacity: 0.9 }}>
           Detailed information and ingredients

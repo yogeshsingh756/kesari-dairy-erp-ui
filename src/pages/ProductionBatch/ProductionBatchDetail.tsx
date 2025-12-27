@@ -250,7 +250,7 @@ export default function ProductionBatchDetail({ id, onClose }: Props) {
               <Table>
                 <TableHead>
                   <TableRow sx={{ bgcolor: "grey.50" }}>
-                    <TableCell sx={{ fontWeight: 600 }}>Ingredient ID</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Ingredient</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Quantity Used</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Unit</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Cost per Unit</TableCell>
@@ -261,12 +261,8 @@ export default function ProductionBatchDetail({ id, onClose }: Props) {
                   {data.ingredients && data.ingredients.length > 0 ? (
                     data.ingredients.map((ingredient: any, idx: number) => (
                       <TableRow key={idx} sx={{ "&:hover": { bgcolor: "grey.25" } }}>
-                        <TableCell>
-                          <Chip
-                            label={`#${ingredient.ingredientTypeId}`}
-                            size="small"
-                            variant="outlined"
-                          />
+                        <TableCell sx={{ fontWeight: 500 }}>
+                          {ingredient.ingredientTypeName}
                         </TableCell>
                         <TableCell sx={{ fontWeight: 500 }}>
                           {ingredient.quantityUsed}

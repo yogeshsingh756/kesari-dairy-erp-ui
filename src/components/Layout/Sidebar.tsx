@@ -33,19 +33,21 @@ export default function Sidebar({ drawerWidth }: Props) {
       <Toolbar />
 
       <List sx={{ p: 2 }}>
-        <ListItemButton
-          onClick={() => navigate("/")}
-          sx={{
-            borderRadius: 2,
-            mb: 1,
-            "&:hover": {
-              background: "linear-gradient(135deg, #FF9933 0%, #E67E22 100%)",
-              color: "white"
-            }
-          }}
-        >
-          <ListItemText primary="Dashboard" />
-        </ListItemButton>
+        {hasPermission(state.permissions, "DASHBOARD_VIEW") && (
+          <ListItemButton
+            onClick={() => navigate("/")}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              "&:hover": {
+                background: "linear-gradient(135deg, #FF9933 0%, #E67E22 100%)",
+                color: "white"
+              }
+            }}
+          >
+            <ListItemText primary="Dashboard" />
+          </ListItemButton>
+        )}
 
         {hasPermission(state.permissions, "USER_VIEW") && (
           <ListItemButton

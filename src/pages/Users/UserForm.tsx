@@ -22,6 +22,7 @@ import {
 import { useEffect, useState } from "react";
 import { createUser, updateUser, getUser } from "../../api/users.api";
 import { getRoles } from "../../api/roles.api";
+import { verifyEmailApi, verifyUsernameApi } from "../../api/auth.api";
 import AppSnackbar from "../../components/AppSnackbar";
 
 interface Props {
@@ -62,6 +63,11 @@ export default function UserForm({
     isActive: true,
   });
 
+  const [validationErrors, setValidationErrors] = useState({
+    email: "",
+    username: "",
+  });
+
   // Handle dialog opening and form initialization
   useEffect(() => {
     if (!open) return; // Only run when dialog is open
@@ -77,6 +83,10 @@ export default function UserForm({
         gender: "",
         roleId: "",
         isActive: true,
+      });
+      setValidationErrors({
+        email: "",
+        username: "",
       });
       setLoading(false);
       setSnackbar(null);
@@ -96,6 +106,10 @@ export default function UserForm({
             gender: res.data.gender || "",
             roleId: res.data.roleId,
             isActive: res.data.isActive,
+          });
+          setValidationErrors({
+            email: "",
+            username: "",
           });
           setLoading(false); // Reset loading after successful data load
         })
@@ -123,12 +137,60 @@ export default function UserForm({
       });
   }, []);
 
+  /* -------- VALIDATION FUNCTIONS -------- */
+  const validateEmail = async (email: string) => {
+    if (!email.trim()) {
+      setValidationErrors(prev => ({ ...prev, email: "" }));
+      return;
+    }
+
+    try {
+      const res = await verifyEmailApi(email.trim());
+      if (res.data === "User Found") {
+        setValidationErrors(prev => ({ ...prev, email: "Email already exists" }));
+      } else {
+        setValidationErrors(prev => ({ ...prev, email: "" }));
+      }
+    } catch (error) {
+      console.error("Email validation error:", error);
+      setValidationErrors(prev => ({ ...prev, email: "" }));
+    }
+  };
+
+  const validateUsername = async (username: string) => {
+    if (!username.trim()) {
+      setValidationErrors(prev => ({ ...prev, username: "" }));
+      return;
+    }
+
+    try {
+      const res = await verifyUsernameApi(username.trim());
+      if (res.data === "User Found") {
+        setValidationErrors(prev => ({ ...prev, username: "Username already exists" }));
+      } else {
+        setValidationErrors(prev => ({ ...prev, username: "" }));
+      }
+    } catch (error) {
+      console.error("Username validation error:", error);
+      setValidationErrors(prev => ({ ...prev, username: "" }));
+    }
+  };
+
   /* -------- SUBMIT -------- */
   const submit = async () => {
     if (!form.fullName || !form.username || !form.email || !form.roleId) {
       setSnackbar({
         type: "error",
         message: "Please fill required fields",
+      });
+      return;
+    }
+
+    // Check for validation errors
+    if (validationErrors.username || validationErrors.email) {
+      setSnackbar({
+        type: "error",
+        message: "Please resolve validation errors before submitting",
       });
       return;
     }
@@ -229,9 +291,20 @@ export default function UserForm({
               fullWidth
               value={form.username}
               disabled={isEdit}
-              onChange={(e) =>
-                setForm({ ...form, username: e.target.value })
-              }
+              error={!!validationErrors.username}
+              helperText={validationErrors.username}
+              onChange={(e) => {
+                setForm({ ...form, username: e.target.value });
+                // Clear error when user starts typing
+                if (validationErrors.username) {
+                  setValidationErrors(prev => ({ ...prev, username: "" }));
+                }
+              }}
+              onBlur={(e) => {
+                if (!isEdit && e.target.value.trim()) {
+                  validateUsername(e.target.value);
+                }
+              }}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
@@ -244,9 +317,20 @@ export default function UserForm({
               type="email"
               fullWidth
               value={form.email}
-              onChange={(e) =>
-                setForm({ ...form, email: e.target.value })
-              }
+              error={!!validationErrors.email}
+              helperText={validationErrors.email}
+              onChange={(e) => {
+                setForm({ ...form, email: e.target.value });
+                // Clear error when user starts typing
+                if (validationErrors.email) {
+                  setValidationErrors(prev => ({ ...prev, email: "" }));
+                }
+              }}
+              onBlur={(e) => {
+                if (e.target.value.trim()) {
+                  validateEmail(e.target.value);
+                }
+              }}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 2,

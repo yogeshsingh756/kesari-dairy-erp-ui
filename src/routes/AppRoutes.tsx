@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Login from "../pages/Login";
+import ForgotPassword from "../pages/ForgotPassword";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import Layout from "../components/Layout/Layout";
 
@@ -15,6 +16,7 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
 
       <Route
         element={
@@ -23,7 +25,11 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={
+          <ProtectedRoute requiredPermission="DASHBOARD_VIEW">
+            <Dashboard />
+          </ProtectedRoute>
+        } />
         <Route path="/users" element={<UserList />} />
         <Route path="/roles" element={<RoleList />} />
         <Route path="/permissions" element={<PermissionList />} />

@@ -1,14 +1,24 @@
+import { useEffect, useState } from "react";
 import { Typography, Box, Card, CardContent, Avatar } from "@mui/material";
-import { People, Security, VpnKey, Business } from "@mui/icons-material";
+import { People, Security, VpnKey, Business, Factory, Inventory } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import { getStats } from "../api/common.api";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const [statsData, setStatsData] = useState({
+    activeUsers: 0,
+    activeRoles: 0,
+    activePermissions: 0,
+    productTypes: 0,
+    ingredientTypes: 0,
+    productionBatches: 0
+  });
 
   const stats = [
     {
       title: "Total Users",
-      value: "0",
+      value: statsData.activeUsers.toString(),
       icon: <People />,
       color: "linear-gradient(135deg, #FF9933 0%, #E67E22 100%)",
       iconBg: "#FF9933",
@@ -16,7 +26,7 @@ export default function Dashboard() {
     },
     {
       title: "Active Roles",
-      value: "0",
+      value: statsData.activeRoles.toString(),
       icon: <Security />,
       color: "linear-gradient(135deg, #FF8C00 0%, #D2691E 100%)",
       iconBg: "#FF8C00",
@@ -24,7 +34,7 @@ export default function Dashboard() {
     },
     {
       title: "Permissions",
-      value: "0",
+      value: statsData.activePermissions.toString(),
       icon: <VpnKey />,
       color: "linear-gradient(135deg, #FFA500 0%, #CD853F 100%)",
       iconBg: "#FFA500",
@@ -32,13 +42,41 @@ export default function Dashboard() {
     },
     {
       title: "Product Types",
-      value: "0",
+      value: statsData.productTypes.toString(),
       icon: <Business />,
       color: "linear-gradient(135deg, #DAA520 0%, #B8860B 100%)",
       iconBg: "#DAA520",
       route: "/product-types"
+    },
+    {
+      title: "Ingredient Types",
+      value: statsData.ingredientTypes.toString(),
+      icon: <Inventory />,
+      color: "linear-gradient(135deg, #9ACD32 0%, #6B8E23 100%)",
+      iconBg: "#9ACD32",
+      route: "/ingredient-types"
+    },
+    {
+      title: "Production Batches",
+      value: statsData.productionBatches.toString(),
+      icon: <Factory />,
+      color: "linear-gradient(135deg, #FF6347 0%, #FF4500 100%)",
+      iconBg: "#FF6347",
+      route: "/production-batches"
     }
   ];
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await getStats();
+        setStatsData(res.data);
+      } catch (error) {
+        console.error('Failed to load dashboard stats:', error);
+      }
+    };
+    fetchStats();
+  }, []);
 
   const quickActions = [
     {
@@ -68,6 +106,20 @@ export default function Dashboard() {
       route: "/product-types",
       hoverColor: "#FFFDF0",
       borderColor: "#DAA520"
+    },
+    {
+      title: "Ingredient Types",
+      icon: <Inventory sx={{ fontSize: 40, color: "#9ACD32", mb: 1 }} />,
+      route: "/ingredient-types",
+      hoverColor: "#F0FFF0",
+      borderColor: "#9ACD32"
+    },
+    {
+      title: "Production Batches",
+      icon: <Factory sx={{ fontSize: 40, color: "#FF6347", mb: 1 }} />,
+      route: "/production-batches",
+      hoverColor: "#FFF5F5",
+      borderColor: "#FF6347"
     }
   ];
 

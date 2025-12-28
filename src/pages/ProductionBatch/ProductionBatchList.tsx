@@ -12,6 +12,7 @@ import {
   Avatar,
   Chip,
   TextField,
+  TablePagination,
 } from "@mui/material";
 import {
   Factory,
@@ -25,20 +26,26 @@ import Loader from "../../components/Loader";
 
 export default function ProductionBatchList() {
   const [rows, setRows] = useState<any[]>([]);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(false);
   const [openForm, setOpenForm] = useState(false);
   const [detailId, setDetailId] = useState<number | null>(null);
   const [batchDateFilter, setBatchDateFilter] = useState<string>("");
 
-  const load = async () => {
+  // Pagination
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const load = async (pageNum = page, pageSize = rowsPerPage) => {
     setLoading(true);
     try {
-      const params: any = { pageNumber: 1, pageSize: 10 };
+      const params: any = { pageNumber: pageNum + 1, pageSize };
       if (batchDateFilter) {
         params.batchDate = batchDateFilter;
       }
       const res = await getProductionBatches(params);
-      setRows(res.data.items);
+      setRows(res.data.items || []);
+      setTotalRecords(res.data.totalRecords || 0);
     } catch (error) {
       console.error('Failed to load production batches:', error);
     } finally {
@@ -47,8 +54,8 @@ export default function ProductionBatchList() {
   };
 
   useEffect(() => {
-    load();
-  }, [batchDateFilter]);
+    load(page, rowsPerPage);
+  }, [page, rowsPerPage, batchDateFilter]);
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 } }}>
@@ -106,7 +113,10 @@ export default function ProductionBatchList() {
               label="Filter by Batch Date"
               type="date"
               value={batchDateFilter}
-              onChange={(e) => setBatchDateFilter(e.target.value)}
+              onChange={(e) => {
+                setBatchDateFilter(e.target.value);
+                setPage(0); // Reset to first page when filtering
+              }}
               InputLabelProps={{ shrink: true }}
               sx={{
                 minWidth: 200,
@@ -118,7 +128,10 @@ export default function ProductionBatchList() {
             {batchDateFilter && (
               <Button
                 variant="outlined"
-                onClick={() => setBatchDateFilter("")}
+                onClick={() => {
+                  setBatchDateFilter("");
+                  setPage(0);
+                }}
                 sx={{ borderRadius: 2 }}
               >
                 Clear Filter
@@ -221,6 +234,31 @@ export default function ProductionBatchList() {
                 ))}
               </TableBody>
             </Table>
+          )}
+
+          {/* Pagination */}
+          {totalRecords > 0 && (
+            <TablePagination
+              component="div"
+              count={totalRecords}
+              page={page}
+              onPageChange={(_event, newPage) => {
+                setPage(newPage);
+              }}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={(event) => {
+                setRowsPerPage(parseInt(event.target.value, 10));
+                setPage(0);
+              }}
+              rowsPerPageOptions={[5, 10, 25, 50]}
+              sx={{
+                borderTop: "1px solid",
+                borderColor: "divider",
+                "& .MuiTablePagination-toolbar": {
+                  py: 2,
+                },
+              }}
+            />
           )}
         </Box>
       </Paper>

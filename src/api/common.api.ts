@@ -8,3 +8,6 @@ const auth = () => ({
 
 export const getUnits = () =>
   api.get("/common/units", auth());
+
+export const getStats = () =>
+  api.get("/common/stats", auth());

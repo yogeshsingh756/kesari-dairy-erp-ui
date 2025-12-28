@@ -1,9 +1,11 @@
-import { Button, TextField, Typography, Box, Paper } from "@mui/material";
+import { Button, TextField, Typography, Box, Paper, Link } from "@mui/material";
 import { Login as LoginIcon } from "@mui/icons-material";
 import { loginApi } from "../api/auth.api";
 import { useAuth } from "../auth/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { hasPermission } from "../utils/hasPermission";
+import AppSnackbar from "../components/AppSnackbar";
 
 export default function Login() {
   const { login } = useAuth();
@@ -16,6 +18,10 @@ export default function Login() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [snackbar, setSnackbar] = useState<{
+    type: "success" | "error" | "info";
+    message: string;
+  } | null>(null);
 
   const submit = async () => {
     if (!data.username || !data.password) {
@@ -29,13 +35,37 @@ export default function Login() {
     try {
       const res = await loginApi(data);
 
+      const userPermissions = res.data.permissions;
+
       login({
         token: res.data.token,
         role: res.data.role,
-        permissions: res.data.permissions,
+        permissions: userPermissions,
       });
 
-      navigate("/");
+      // Redirect based on permissions
+      if (hasPermission(userPermissions, "DASHBOARD_VIEW")) {
+        navigate("/");
+      } else if (hasPermission(userPermissions, "USER_VIEW")) {
+        navigate("/users");
+      } else if (hasPermission(userPermissions, "ROLE_VIEW")) {
+        navigate("/roles");
+      } else if (hasPermission(userPermissions, "PERMISSION_VIEW")) {
+        navigate("/permissions");
+      } else if (hasPermission(userPermissions, "PRODUCT_TYPE_VIEW")) {
+        navigate("/product-types");
+      } else if (hasPermission(userPermissions, "INGREDIENT_TYPE_VIEW")) {
+        navigate("/ingredient-types");
+      } else if (hasPermission(userPermissions, "PRODUCTION_BATCH_VIEW")) {
+        navigate("/production-batches");
+      } else {
+        // No view permissions - show warning toast and stay on login page
+        setSnackbar({
+          type: "info",
+          message: "Login successful, but you don't have permissions to access any modules. Please contact administrator to assign permissions.",
+        });
+        // Don't navigate - stay on login page
+      }
     } catch {
       setError("Invalid username or password");
     } finally {
@@ -152,7 +182,31 @@ export default function Login() {
         >
           {loading ? "Signing In..." : "Sign In"}
         </Button>
+
+        <Box sx={{ mt: 2, textAlign: "center" }}>
+          <Link
+            component="button"
+            variant="body2"
+            onClick={() => navigate("/forgot-password")}
+            sx={{
+              color: "primary.main",
+              textDecoration: "none",
+              "&:hover": { textDecoration: "underline" }
+            }}
+          >
+            Forgot Password?
+          </Link>
+        </Box>
       </Paper>
+
+      {snackbar && (
+        <AppSnackbar
+          open
+          severity={snackbar.type}
+          message={snackbar.message}
+          onClose={() => setSnackbar(null)}
+        />
+      )}
     </Box>
   );
 }

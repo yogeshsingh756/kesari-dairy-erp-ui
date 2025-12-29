@@ -11,6 +11,10 @@ import PermissionList from "../pages/Permissions/PermissionList";
 import ProductTypeList from "../pages/ProductTypes/ProductTypeList";
 import IngredientTypeList from "../pages/IngredientTypes/IngredientTypeList";
 import ProductionBatchList from "../pages/ProductionBatch/ProductionBatchList";
+import PurchaseCreate from "../pages/Purchases/PurchaseCreate";
+import PurchaseList from "../pages/Purchases/PurchaseList";
+import PurchaseDetail from "../pages/Purchases/PurchaseDetail";
+import InventoryList from "../pages/Inventory/InventoryList";
 
 export default function AppRoutes() {
   return (
@@ -36,6 +40,10 @@ export default function AppRoutes() {
         <Route path="/product-types" element={<ProductTypeList />} />
         <Route path="/ingredient-types" element={<IngredientTypeList />} />
         <Route path="/production-batches" element={<ProductionBatchList />} />
+        <Route path="/purchases" element={<PurchaseList />} />
+        <Route path="/purchases/new" element={<PurchaseCreate />} />
+        <Route path="/purchases/:id" element={<PurchaseDetail />} />
+        <Route path="/inventory" element={<InventoryList />} />
       </Route>
     </Routes>
   );

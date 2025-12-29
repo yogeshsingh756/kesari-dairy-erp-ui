@@ -144,6 +144,34 @@ export default function Sidebar({ drawerWidth }: Props) {
             <ListItemText primary="Production Batches" />
           </ListItemButton>
         )}
+
+        <ListItemButton
+          onClick={() => navigate("/purchases")}
+          sx={{
+            borderRadius: 2,
+            mb: 1,
+            "&:hover": {
+              background: "linear-gradient(135deg, #FF8C00 0%, #E67E22 100%)",
+              color: "white"
+            }
+          }}
+        >
+          <ListItemText primary="Purchases" />
+        </ListItemButton>
+
+        <ListItemButton
+          onClick={() => navigate("/inventory")}
+          sx={{
+            borderRadius: 2,
+            mb: 1,
+            "&:hover": {
+              background: "linear-gradient(135deg, #2196F3 0%, #1976D2 100%)",
+              color: "white"
+            }
+          }}
+        >
+          <ListItemText primary="Inventory" />
+        </ListItemButton>
       </List>
     </Drawer>
   );

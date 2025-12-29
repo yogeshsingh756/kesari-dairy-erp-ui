@@ -22,6 +22,7 @@ import {
   updateIngredientType,
   getIngredientType,
 } from "../../api/ingredientTypes.api";
+import { getUnits } from "../../api/common.api";
 import AppSnackbar from "../../components/AppSnackbar";
 
 interface Props {
@@ -51,6 +52,44 @@ export default function IngredientTypeForm({
     costPerUnit: 0,
     description: "",
   });
+
+  const [units, setUnits] = useState<string[]>(['KG', 'LITER', 'ML', 'GRAM', 'PIECE']); // Default fallback
+
+  // Load units from API
+  useEffect(() => {
+    const loadUnits = async () => {
+      try {
+        const res = await getUnits();
+        // Handle different possible response formats
+        let unitsData: string[] = [];
+
+        if (Array.isArray(res.data)) {
+          // Check if array contains objects or strings
+          if (res.data.length > 0 && typeof res.data[0] === 'object') {
+            // Handle object format: [{code: "KG", label: "Kilogram"}, ...]
+            unitsData = res.data.map((item: any) => item.code || item.value || item);
+          } else {
+            // Handle string array: ["KG", "LITER", ...]
+            unitsData = res.data;
+          }
+        } else if (res.data && typeof res.data === 'object') {
+          // Handle object response format
+          unitsData = Object.values(res.data) || [];
+        }
+
+        // Only update if we got valid data
+        if (unitsData.length > 0) {
+          // Remove duplicates and filter out non-string values
+          const uniqueUnits = [...new Set(unitsData.filter(u => typeof u === 'string'))];
+          setUnits(uniqueUnits);
+        }
+      } catch (error) {
+        console.error('Failed to load units:', error);
+        // Keep default units as fallback
+      }
+    };
+    loadUnits();
+  }, []);
 
   // Handle dialog opening and form initialization
   useEffect(() => {
@@ -87,6 +126,7 @@ export default function IngredientTypeForm({
             message: "Failed to load ingredient type"
           });
           setLoading(false); // Reset loading on error
+          // Don't close the dialog on error, let user try again
         });
     }
   }, [open, ingredientTypeId]);
@@ -144,6 +184,7 @@ export default function IngredientTypeForm({
             overflow: "hidden"
           }
         }}
+        disableEnforceFocus
       >
         {/* Header */}
         <Box
@@ -183,6 +224,9 @@ export default function IngredientTypeForm({
                 setForm({ ...form, name: e.target.value })
               }
               required
+              InputLabelProps={{
+                shrink: form.name ? true : undefined,
+              }}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
@@ -195,24 +239,33 @@ export default function IngredientTypeForm({
                 borderRadius: 2,
               }
             }}>
-              <InputLabel>Unit</InputLabel>
+              <InputLabel shrink={form.unit ? true : undefined}>Unit</InputLabel>
               <Select
-                value={form.unit}
+                value={form.unit || ""}
                 label="Unit"
-                onChange={(e) =>
-                  setForm({ ...form, unit: e.target.value })
-                }
+                onChange={(e) => {
+                  try {
+                    setForm({ ...form, unit: e.target.value });
+                  } catch (error) {
+                    console.error('Error updating unit:', error);
+                  }
+                }}
                 required
+                displayEmpty
               >
                 <MenuItem value="">
-                  <em>Select Unit</em>
                 </MenuItem>
-                <MenuItem value="KG">KG</MenuItem>
-                <MenuItem value="LITER">LITER</MenuItem>
-                <MenuItem value="ML">ML</MenuItem>
-                <MenuItem value="GRAM">GRAM</MenuItem>
-                <MenuItem value="PIECE">PIECE</MenuItem>
-                <MenuItem value="PACKET">PACKET</MenuItem>
+                {units && units.length > 0 ? (
+                  units.map((unit) => (
+                    <MenuItem key={unit} value={unit}>
+                      {unit}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem value="" disabled>
+                    <em>Loading units...</em>
+                  </MenuItem>
+                )}
               </Select>
             </FormControl>
 
@@ -226,6 +279,9 @@ export default function IngredientTypeForm({
               }
               required
               inputProps={{ min: 0, step: 0.01 }}
+              InputLabelProps={{
+                shrink: form.costPerUnit > 0 ? true : undefined,
+              }}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
@@ -243,6 +299,9 @@ export default function IngredientTypeForm({
                 setForm({ ...form, description: e.target.value })
               }
               placeholder="Enter a brief description of this ingredient..."
+              InputLabelProps={{
+                shrink: form.description ? true : undefined,
+              }}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 2,

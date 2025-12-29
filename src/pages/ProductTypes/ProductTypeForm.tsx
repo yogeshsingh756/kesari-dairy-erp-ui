@@ -24,6 +24,7 @@ import {
   updateProductType,
   getProductType,
 } from "../../api/productTypes.api";
+import { getUnits } from "../../api/common.api";
 import AppSnackbar from "../../components/AppSnackbar";
 
 interface Props {
@@ -54,6 +55,44 @@ export default function ProductTypeForm({
     quantity: 0,
     isActive: true,
   });
+
+  const [units, setUnits] = useState<string[]>(['KG', 'LITER', 'ML', 'GRAM', 'PIECE', 'PACKET']); // Default fallback
+
+  // Load units from API
+  useEffect(() => {
+    const loadUnits = async () => {
+      try {
+        const res = await getUnits();
+        // Handle different possible response formats
+        let unitsData: string[] = [];
+
+        if (Array.isArray(res.data)) {
+          // Check if array contains objects or strings
+          if (res.data.length > 0 && typeof res.data[0] === 'object') {
+            // Handle object format: [{code: "KG", label: "Kilogram"}, ...]
+            unitsData = res.data.map((item: any) => item.code || item.value || item);
+          } else {
+            // Handle string array: ["KG", "LITER", ...]
+            unitsData = res.data;
+          }
+        } else if (res.data && typeof res.data === 'object') {
+          // Handle object response format
+          unitsData = Object.values(res.data) || [];
+        }
+
+        // Only update if we got valid data
+        if (unitsData.length > 0) {
+          // Remove duplicates and filter out non-string values
+          const uniqueUnits = [...new Set(unitsData.filter(u => typeof u === 'string'))];
+          setUnits(uniqueUnits);
+        }
+      } catch (error) {
+        console.error('Failed to load units:', error);
+        // Keep default units as fallback
+      }
+    };
+    loadUnits();
+  }, []);
 
   // Handle dialog opening and form initialization
   useEffect(() => {
@@ -233,12 +272,11 @@ export default function ProductTypeForm({
                 <MenuItem value="">
                   <em>Select Unit</em>
                 </MenuItem>
-                <MenuItem value="KG">KG</MenuItem>
-                <MenuItem value="LITER">LITER</MenuItem>
-                <MenuItem value="ML">ML</MenuItem>
-                <MenuItem value="GRAM">GRAM</MenuItem>
-                <MenuItem value="PIECE">PIECE</MenuItem>
-                <MenuItem value="PACKET">PACKET</MenuItem>
+                {units.map((unit) => (
+                  <MenuItem key={unit} value={unit}>
+                    {unit}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </Box>

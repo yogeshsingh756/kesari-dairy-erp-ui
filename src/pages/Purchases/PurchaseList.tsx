@@ -20,9 +20,13 @@ import {
 } from "@mui/icons-material";
 import { getPurchases } from "../../api/purchase.api";
 import { useNavigate } from "react-router-dom";
+import { hasPermission } from "../../utils/hasPermission";
+import { useAuth } from "../../auth/useAuth";
 import Loader from "../../components/Loader";
 
 export default function PurchaseList() {
+  const { state } = useAuth();
+
   const [rows, setRows] = useState<any[]>([]);
   const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -96,21 +100,23 @@ export default function PurchaseList() {
                 </Typography>
               </Box>
             </Box>
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={() => navigate("/purchases/new")}
-              sx={{
-                bgcolor: "rgba(255,255,255,0.2)",
-                "&:hover": {
-                  bgcolor: "rgba(255,255,255,0.3)"
-                },
-                borderRadius: 2,
-                px: 3
-              }}
-            >
-              New Purchase
-            </Button>
+            {hasPermission(state.permissions, "PURCHASE_CREATE") && (
+              <Button
+                variant="contained"
+                startIcon={<Add />}
+                onClick={() => navigate("/purchases/new")}
+                sx={{
+                  bgcolor: "rgba(255,255,255,0.2)",
+                  "&:hover": {
+                    bgcolor: "rgba(255,255,255,0.3)"
+                  },
+                  borderRadius: 2,
+                  px: 3
+                }}
+              >
+                New Purchase
+              </Button>
+            )}
           </Box>
         </Box>
 

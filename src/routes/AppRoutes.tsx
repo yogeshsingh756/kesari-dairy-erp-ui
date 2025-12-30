@@ -15,6 +15,8 @@ import PurchaseCreate from "../pages/Purchases/PurchaseCreate";
 import PurchaseList from "../pages/Purchases/PurchaseList";
 import PurchaseDetail from "../pages/Purchases/PurchaseDetail";
 import InventoryList from "../pages/Inventory/InventoryList";
+import VendorList from "../pages/Vendors/VendorList";
+import VendorLedgerList from "../pages/Vendors/VendorLedgerList";
 
 export default function AppRoutes() {
   return (
@@ -40,10 +42,36 @@ export default function AppRoutes() {
         <Route path="/product-types" element={<ProductTypeList />} />
         <Route path="/ingredient-types" element={<IngredientTypeList />} />
         <Route path="/production-batches" element={<ProductionBatchList />} />
-        <Route path="/purchases" element={<PurchaseList />} />
-        <Route path="/purchases/new" element={<PurchaseCreate />} />
-        <Route path="/purchases/:id" element={<PurchaseDetail />} />
-        <Route path="/inventory" element={<InventoryList />} />
+        <Route path="/purchases" element={
+          <ProtectedRoute requiredPermission="PURCHASE_VIEW">
+            <PurchaseList />
+          </ProtectedRoute>
+        } />
+        <Route path="/purchases/new" element={
+          <ProtectedRoute requiredPermission="PURCHASE_VIEW">
+            <PurchaseCreate />
+          </ProtectedRoute>
+        } />
+        <Route path="/purchases/:id" element={
+          <ProtectedRoute requiredPermission="PURCHASE_VIEW">
+            <PurchaseDetail />
+          </ProtectedRoute>
+        } />
+        <Route path="/inventory" element={
+          <ProtectedRoute requiredPermission="INVENTORY_VIEW">
+            <InventoryList />
+          </ProtectedRoute>
+        } />
+        <Route path="/vendors" element={
+          <ProtectedRoute requiredPermission="VENDORS_VIEW">
+            <VendorList />
+          </ProtectedRoute>
+        } />
+        <Route path="/vendor-ledger" element={
+          <ProtectedRoute requiredPermission="VENDORS_LEDGERS_VIEW">
+            <VendorLedgerList />
+          </ProtectedRoute>
+        } />
       </Route>
     </Routes>
   );

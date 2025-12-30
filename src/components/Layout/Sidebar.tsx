@@ -145,33 +145,69 @@ export default function Sidebar({ drawerWidth }: Props) {
           </ListItemButton>
         )}
 
-        <ListItemButton
-          onClick={() => navigate("/purchases")}
-          sx={{
-            borderRadius: 2,
-            mb: 1,
-            "&:hover": {
-              background: "linear-gradient(135deg, #FF8C00 0%, #E67E22 100%)",
-              color: "white"
-            }
-          }}
-        >
-          <ListItemText primary="Purchases" />
-        </ListItemButton>
+        {hasPermission(state.permissions, "PURCHASE_VIEW") && (
+          <ListItemButton
+            onClick={() => navigate("/purchases")}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              "&:hover": {
+                background: "linear-gradient(135deg, #FF8C00 0%, #E67E22 100%)",
+                color: "white"
+              }
+            }}
+          >
+            <ListItemText primary="Purchases" />
+          </ListItemButton>
+        )}
 
-        <ListItemButton
-          onClick={() => navigate("/inventory")}
-          sx={{
-            borderRadius: 2,
-            mb: 1,
-            "&:hover": {
-              background: "linear-gradient(135deg, #2196F3 0%, #1976D2 100%)",
-              color: "white"
-            }
-          }}
-        >
-          <ListItemText primary="Inventory" />
-        </ListItemButton>
+        {hasPermission(state.permissions, "INVENTORY_VIEW") && (
+          <ListItemButton
+            onClick={() => navigate("/inventory")}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              "&:hover": {
+                background: "linear-gradient(135deg, #FF8C00 0%, #E67E22 100%)",
+                color: "white"
+              }
+            }}
+          >
+            <ListItemText primary="Inventory" />
+          </ListItemButton>
+        )}
+
+        {hasPermission(state.permissions, "VENDORS_VIEW") && (
+          <ListItemButton
+            onClick={() => navigate("/vendors")}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              "&:hover": {
+                background: "linear-gradient(135deg, #FF8C00 0%, #E67E22 100%)",
+                color: "white"
+              }
+            }}
+          >
+            <ListItemText primary="Vendors" />
+          </ListItemButton>
+        )}
+
+        {hasPermission(state.permissions, "VENDORS_LEDGERS_VIEW") && (
+          <ListItemButton
+            onClick={() => navigate("/vendor-ledger")}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              "&:hover": {
+                background: "linear-gradient(135deg, #FF8C00 0%, #E67E22 100%)",
+                color: "white"
+              }
+            }}
+          >
+            <ListItemText primary="Vendors Ledger" />
+          </ListItemButton>
+        )}
       </List>
     </Drawer>
   );

@@ -6,5 +6,5 @@ const auth = () => ({
   },
 });
 
-export const getInventory = () =>
-  api.get("/inventory", auth());
+export const getInventory = (params?: any) =>
+  api.get("/inventory", { params, ...auth() });

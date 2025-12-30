@@ -12,3 +12,10 @@ export const getProductionBatchById = (id: number) =>
 
 export const createProductionBatch = (data: any) =>
   api.post("/production-batches", data, auth());
+
+// PACKAGING APIs
+export const calculatePackaging = (batchId: number, extraPerUnit: number) =>
+  api.post(`/batches/${batchId}/packaging/calculate`, { extraPerUnit }, auth());
+
+export const confirmPackaging = (batchId: number, requestData: any) =>
+  api.post(`/batches/${batchId}/packaging/confirm`, requestData, auth());

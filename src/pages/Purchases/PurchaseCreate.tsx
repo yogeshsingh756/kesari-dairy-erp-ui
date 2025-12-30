@@ -616,31 +616,20 @@ export default function PurchaseCreate() {
               </Typography>
 
               <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 3, mb: 4 }}>
-                <FormControl fullWidth sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2,
-                  }
-                }}>
-                  <InputLabel shrink={other.rawMaterialType ? true : undefined}>Raw Material</InputLabel>
-                  <Select
-                    value={other.rawMaterialType}
-                    label="Raw Material"
-                    onChange={(e) => {
-                      const selectedMaterial = rawMaterials.find(m => m.name === e.target.value);
-                      setOther({
-                        ...other,
-                        rawMaterialType: e.target.value,
-                        unit: selectedMaterial?.unit || ""
-                      });
-                    }}
-                  >
-                    {rawMaterials.map((material) => (
-                      <MenuItem key={material.id} value={material.name}>
-                        {material.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <TextField
+                  label="Raw Material"
+                  fullWidth
+                  value={other.rawMaterialType}
+                  onChange={(e) => setOther({ ...other, rawMaterialType: e.target.value })}
+                  InputLabelProps={{
+                    shrink: other.rawMaterialType ? true : undefined,
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2,
+                    }
+                  }}
+                />
 
                 <TextField
                   label="Quantity"

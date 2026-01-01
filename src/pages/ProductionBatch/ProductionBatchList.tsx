@@ -282,6 +282,7 @@ export default function ProductionBatchList() {
                   <TableCell sx={{ fontWeight: 600 }}>Selling Price/Unit</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Total Cost</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Packets Status</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -337,6 +338,18 @@ export default function ProductionBatchList() {
                       {new Date(r.batchDate).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
+                      <Chip
+                        label={
+                          r.totalPacketsCreated > 0
+                            ? `Packets Created (${r.totalPacketsCreated})`
+                            : "Packets not Created"
+                        }
+                        size="small"
+                        color={r.totalPacketsCreated > 0 ? "success" : "warning"}
+                        sx={{ fontWeight: 500 }}
+                      />
+                    </TableCell>
+                    <TableCell>
                       <Stack direction="row" spacing={1}>
                         <Tooltip title="View Batch Details">
                           <IconButton
@@ -355,7 +368,7 @@ export default function ProductionBatchList() {
                           </IconButton>
                         </Tooltip>
 
-                        {hasPermission(state.permissions, "PRODUCTION_BATCH_EDIT") && (
+                        {hasPermission(state.permissions, "PRODUCTION_BATCH_EDIT") && r.totalPacketsCreated <= 0 && (
                           <Tooltip title="Edit Batch">
                             <IconButton
                               size="small"
@@ -391,7 +404,7 @@ export default function ProductionBatchList() {
                           </IconButton>
                         </Tooltip>
 
-                        {hasPermission(state.permissions, "PRODUCTION_BATCH_DELETE") && (
+                        {hasPermission(state.permissions, "PRODUCTION_BATCH_DELETE") && r.totalPacketsCreated <= 0 && (
                           <Tooltip title="Delete Batch">
                             <IconButton
                               size="small"

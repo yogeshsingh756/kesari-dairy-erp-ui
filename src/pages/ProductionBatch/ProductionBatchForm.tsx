@@ -23,6 +23,7 @@ import { getIngredientDropdown } from "../../api/ingredientTypes.api";
 import { getUnits } from "../../api/common.api";
 import { createProductionBatch, updateProductionBatch, getProductionBatchById } from "../../api/productionBatches.api";
 import AppSnackbar from "../../components/AppSnackbar";
+import Loader from "../../components/Loader";
 
 interface Props {
   open: boolean;
@@ -33,6 +34,7 @@ interface Props {
 
 export default function ProductionBatchForm({ open, onClose, onSuccess, editId }: Props) {
   const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false); // For loading existing data in edit mode
   const [snackbar, setSnackbar] = useState<{
     type: "success" | "error";
     message: string;
@@ -50,7 +52,7 @@ export default function ProductionBatchForm({ open, onClose, onSuccess, editId }
     fat: "",
     snf: "",
     processingFeePerUnit: "",
-    batchDate: new Date().toISOString().slice(0, 10),
+    batchDate: new Date().toLocaleDateString('en-CA'),
     ingredients: []
   });
 
@@ -67,7 +69,7 @@ export default function ProductionBatchForm({ open, onClose, onSuccess, editId }
       fat: "",
       snf: "",
       processingFeePerUnit: "",
-      batchDate: new Date().toISOString().slice(0, 10),
+      batchDate: new Date().toLocaleDateString('en-CA'),
       ingredients: []
     });
     setLoading(false);
@@ -75,6 +77,7 @@ export default function ProductionBatchForm({ open, onClose, onSuccess, editId }
 
     // Load data
     const loadData = async () => {
+      setDataLoading(true);
       try {
         const [productsRes, ingredientsRes, unitsRes] = await Promise.all([
           getProductDropdown(),
@@ -107,7 +110,7 @@ export default function ProductionBatchForm({ open, onClose, onSuccess, editId }
             fat: batchData.fat || "",
             snf: batchData.snf || "",
             processingFeePerUnit: batchData.processingFeePerUnit || "",
-            batchDate: batchData.batchDate ? new Date(batchData.batchDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+            batchDate: batchData.batchDate ? new Date(batchData.batchDate).toLocaleDateString('en-CA') : new Date().toLocaleDateString('en-CA'),
             ingredients: formattedIngredients
           });
         }
@@ -117,6 +120,8 @@ export default function ProductionBatchForm({ open, onClose, onSuccess, editId }
           type: "error",
           message: "Failed to load form data"
         });
+      } finally {
+        setDataLoading(false);
       }
     };
 
@@ -532,6 +537,9 @@ export default function ProductionBatchForm({ open, onClose, onSuccess, editId }
           onClose={() => setSnackbar(null)}
         />
       )}
+
+      {/* Loader for data loading in edit mode */}
+      <Loader open={dataLoading} message="Loading batch data..." />
     </>
   );
 }

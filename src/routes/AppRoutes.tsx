@@ -41,7 +41,11 @@ export default function AppRoutes() {
         <Route path="/permissions" element={<PermissionList />} />
         <Route path="/product-types" element={<ProductTypeList />} />
         <Route path="/ingredient-types" element={<IngredientTypeList />} />
-        <Route path="/production-batches" element={<ProductionBatchList />} />
+        <Route path="/production-batches" element={
+          <ProtectedRoute requiredPermission="PRODUCTION_BATCH_VIEW">
+            <ProductionBatchList />
+          </ProtectedRoute>
+        } />
         <Route path="/purchases" element={
           <ProtectedRoute requiredPermission="PURCHASE_VIEW">
             <PurchaseList />

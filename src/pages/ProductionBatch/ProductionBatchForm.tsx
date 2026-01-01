@@ -21,16 +21,17 @@ import { useEffect, useState } from "react";
 import { getProductDropdown } from "../../api/productTypes.api";
 import { getIngredientDropdown } from "../../api/ingredientTypes.api";
 import { getUnits } from "../../api/common.api";
-import { createProductionBatch } from "../../api/productionBatches.api";
+import { createProductionBatch, updateProductionBatch, getProductionBatchById } from "../../api/productionBatches.api";
 import AppSnackbar from "../../components/AppSnackbar";
 
 interface Props {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  editId?: number | null;
 }
 
-export default function ProductionBatchForm({ open, onClose, onSuccess }: Props) {
+export default function ProductionBatchForm({ open, onClose, onSuccess, editId }: Props) {
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     type: "success" | "error";
@@ -73,18 +74,54 @@ export default function ProductionBatchForm({ open, onClose, onSuccess }: Props)
     setSnackbar(null);
 
     // Load data
-    Promise.all([
-      getProductDropdown().then(r => setProducts(r.data)),
-      getIngredientDropdown().then(r => setIngredients(r.data)),
-      getUnits().then(r => setUnits(r.data))
-    ]).catch(error => {
-      console.error('Failed to load data:', error);
-      setSnackbar({
-        type: "error",
-        message: "Failed to load form data"
-      });
-    });
-  }, [open]);
+    const loadData = async () => {
+      try {
+        const [productsRes, ingredientsRes, unitsRes] = await Promise.all([
+          getProductDropdown(),
+          getIngredientDropdown(),
+          getUnits()
+        ]);
+
+        setProducts(productsRes.data);
+        setIngredients(ingredientsRes.data);
+        setUnits(unitsRes.data);
+
+        // If editing, load existing batch data
+        if (editId) {
+          const batchRes = await getProductionBatchById(editId);
+          const batchData = batchRes.data;
+
+          // Convert ingredients format
+          const formattedIngredients = batchData.ingredients.map((ing: any) => ({
+            ingredientTypeId: ing.ingredientTypeId,
+            quantityUsed: ing.quantityUsed,
+            unit: ing.unit,
+            costPerUnit: ing.costPerUnit
+          }));
+
+          setForm({
+            productId: batchData.productId,
+            basePricePerUnit: batchData.basePricePerUnit || "",
+            batchQuantity: batchData.batchQuantity,
+            batchUnit: batchData.batchUnit,
+            fat: batchData.fat || "",
+            snf: batchData.snf || "",
+            processingFeePerUnit: batchData.processingFeePerUnit || "",
+            batchDate: batchData.batchDate ? new Date(batchData.batchDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+            ingredients: formattedIngredients
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load data:', error);
+        setSnackbar({
+          type: "error",
+          message: "Failed to load form data"
+        });
+      }
+    };
+
+    loadData();
+  }, [open, editId]);
 
   const addIngredient = () => {
     setForm({
@@ -129,20 +166,28 @@ export default function ProductionBatchForm({ open, onClose, onSuccess }: Props)
 
     setLoading(true);
     try {
-      await createProductionBatch(form);
-      setSnackbar({
-        type: "success",
-        message: "Production batch created successfully"
-      });
+      if (editId) {
+        await updateProductionBatch(editId, form);
+        setSnackbar({
+          type: "success",
+          message: "Production batch updated successfully"
+        });
+      } else {
+        await createProductionBatch(form);
+        setSnackbar({
+          type: "success",
+          message: "Production batch created successfully"
+        });
+      }
       onSuccess();
       setTimeout(() => {
         onClose();
       }, 1000);
     } catch (error) {
-      console.error('Failed to create production batch:', error);
+      console.error('Failed to save production batch:', error);
       setSnackbar({
         type: "error",
-        message: error instanceof Error ? error.message : "Failed to create production batch"
+        message: error instanceof Error ? error.message : `Failed to ${editId ? 'update' : 'create'} production batch`
       });
       setLoading(false);
     }
@@ -183,10 +228,10 @@ export default function ProductionBatchForm({ open, onClose, onSuccess }: Props)
             <Factory sx={{ fontSize: 32 }} />
           </Avatar>
           <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
-            Create Production Batch
+            {editId ? "Update Production Batch" : "Create Production Batch"}
           </Typography>
           <Typography variant="body2" sx={{ opacity: 0.9 }}>
-            Set up a new production batch with ingredients
+            {editId ? "Modify production batch details and ingredients" : "Set up a new production batch with ingredients"}
           </Typography>
         </Box>
 
@@ -197,6 +242,7 @@ export default function ProductionBatchForm({ open, onClose, onSuccess }: Props)
               <FormControl fullWidth sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
+                  ...(editId && { bgcolor: "grey.50" })
                 }
               }}>
                 <InputLabel>Product</InputLabel>
@@ -204,13 +250,16 @@ export default function ProductionBatchForm({ open, onClose, onSuccess }: Props)
                   value={form.productId}
                   label="Product"
                   onChange={(e) => {
-                    const selectedProduct = products.find(p => p.id == e.target.value);
-                    setForm({
-                      ...form,
-                      productId: e.target.value,
-                      basePricePerUnit: selectedProduct ? selectedProduct.basePricePerUnit || "" : ""
-                    });
+                    if (!editId) {
+                      const selectedProduct = products.find(p => p.id == e.target.value);
+                      setForm({
+                        ...form,
+                        productId: e.target.value,
+                        basePricePerUnit: selectedProduct ? selectedProduct.basePricePerUnit || "" : ""
+                      });
+                    }
                   }}
+                  disabled={!!editId}
                   required
                 >
                   <MenuItem value="">
@@ -253,6 +302,7 @@ export default function ProductionBatchForm({ open, onClose, onSuccess }: Props)
               <FormControl fullWidth sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
+                  ...(editId && { bgcolor: "grey.50" })
                 }
               }}>
                 <InputLabel>Batch Unit</InputLabel>
@@ -260,6 +310,7 @@ export default function ProductionBatchForm({ open, onClose, onSuccess }: Props)
                   value={form.batchUnit}
                   label="Batch Unit"
                   onChange={(e) => setForm({ ...form, batchUnit: e.target.value })}
+                  disabled={!!editId}
                   required
                 >
                   <MenuItem value="">
@@ -467,7 +518,7 @@ export default function ProductionBatchForm({ open, onClose, onSuccess }: Props)
               }
             }}
           >
-            {loading ? "Creating..." : "Create Batch"}
+            {loading ? (editId ? "Updating..." : "Creating...") : (editId ? "Update Batch" : "Create Batch")}
           </Button>
         </DialogActions>
       </Dialog>

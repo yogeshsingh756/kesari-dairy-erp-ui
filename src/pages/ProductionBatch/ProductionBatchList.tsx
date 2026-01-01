@@ -27,12 +27,16 @@ import {
   Visibility,
   Calculate,
   CheckCircle,
+  Edit,
+  Delete,
 } from "@mui/icons-material";
-import { getProductionBatches, calculatePackaging, confirmPackaging } from "../../api/productionBatches.api";
+import { getProductionBatches, calculatePackaging, confirmPackaging, deleteProductionBatch } from "../../api/productionBatches.api";
 import { hasPermission } from "../../utils/hasPermission";
 import { useAuth } from "../../auth/useAuth";
 import ProductionBatchForm from "./ProductionBatchForm";
 import ProductionBatchDetail from "./ProductionBatchDetail";
+import ConfirmDialog from "../../components/ConfirmDialog";
+import AppSnackbar from "../../components/AppSnackbar";
 import Loader from "../../components/Loader";
 
 export default function ProductionBatchList() {
@@ -43,7 +47,13 @@ export default function ProductionBatchList() {
   const [loading, setLoading] = useState(false);
   const [openForm, setOpenForm] = useState(false);
   const [detailId, setDetailId] = useState<number | null>(null);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
   const [batchDateFilter, setBatchDateFilter] = useState<string>("");
+  const [snackbar, setSnackbar] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   // Pagination
   const [page, setPage] = useState(0);
@@ -136,6 +146,34 @@ export default function ProductionBatchList() {
     setSelectedBatchId(batchId);
     setExtraPerUnit("");
     setPackagingDialogOpen(true);
+  };
+
+  const openEditForm = (batchId: number) => {
+    setEditId(batchId);
+    setOpenForm(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+
+    setLoading(true);
+    try {
+      await deleteProductionBatch(deleteId);
+      setSnackbar({
+        type: "success",
+        message: "Production batch deleted successfully"
+      });
+      load(); // Refresh the list
+    } catch (error) {
+      console.error('Failed to delete production batch:', error);
+      setSnackbar({
+        type: "error",
+        message: "Failed to delete production batch"
+      });
+    } finally {
+      setLoading(false);
+      setDeleteId(null);
+    }
   };
 
   return (
@@ -317,6 +355,25 @@ export default function ProductionBatchList() {
                           </IconButton>
                         </Tooltip>
 
+                        {hasPermission(state.permissions, "PRODUCTION_BATCH_EDIT") && (
+                          <Tooltip title="Edit Batch">
+                            <IconButton
+                              size="small"
+                              sx={{
+                                bgcolor: "warning.light",
+                                color: "warning.main",
+                                "&:hover": {
+                                  bgcolor: "warning.main",
+                                  color: "white"
+                                }
+                              }}
+                              onClick={() => openEditForm(r.id)}
+                            >
+                              <Edit fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+
                         <Tooltip title="Calculate Packaging">
                           <IconButton
                             size="small"
@@ -333,6 +390,25 @@ export default function ProductionBatchList() {
                             <Calculate fontSize="small" />
                           </IconButton>
                         </Tooltip>
+
+                        {hasPermission(state.permissions, "PRODUCTION_BATCH_DELETE") && (
+                          <Tooltip title="Delete Batch">
+                            <IconButton
+                              size="small"
+                              sx={{
+                                bgcolor: "error.light",
+                                color: "error.main",
+                                "&:hover": {
+                                  bgcolor: "error.main",
+                                  color: "white"
+                                }
+                              }}
+                              onClick={() => setDeleteId(r.id)}
+                            >
+                              <Delete fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
                       </Stack>
                     </TableCell>
                   </TableRow>
@@ -372,8 +448,12 @@ export default function ProductionBatchList() {
       {openForm && (
         <ProductionBatchForm
           open={openForm}
-          onClose={() => setOpenForm(false)}
+          onClose={() => {
+            setOpenForm(false);
+            setEditId(null);
+          }}
           onSuccess={load}
+          editId={editId}
         />
       )}
 
@@ -603,6 +683,24 @@ export default function ProductionBatchList() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={!!deleteId}
+        title="Delete this production batch?"
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDelete}
+      />
+
+      {/* Snackbar */}
+      {snackbar && (
+        <AppSnackbar
+          open
+          severity={snackbar.type}
+          message={snackbar.message}
+          onClose={() => setSnackbar(null)}
+        />
+      )}
 
       {/* Loading */}
       <Loader open={loading} message={loading ? "Processing..." : "Loading production batches..."} />

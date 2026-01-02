@@ -80,11 +80,13 @@ export default function ProductionBatchForm({ open, onClose, onSuccess, editId }
     const loadData = async () => {
       setDataLoading(true);
       try {
-        const [productsRes, ingredientsRes, unitsRes, milkStockRes] = await Promise.all([
+        // Fetch milk stock first to ensure fresh data
+        const milkStockRes = await getMilkStock();
+
+        const [productsRes, ingredientsRes, unitsRes] = await Promise.all([
           getProductDropdown(),
           getIngredientDropdown(),
-          getUnits(),
-          getMilkStock()
+          getUnits()
         ]);
 
         setProducts(productsRes.data);
@@ -326,9 +328,9 @@ export default function ProductionBatchForm({ open, onClose, onSuccess, editId }
                   error={form.batchQuantity && milkStock && parseFloat(form.batchQuantity) > (editId ? milkStock.quantityAvailable + (form.originalQuantity || 0) : milkStock.quantityAvailable)}
                   helperText={
                     milkStock ?
-                      `Available milk: ${milkStock.quantityAvailable} ${milkStock.unit || 'L'}` +
-                      (editId && form.originalQuantity ? ` (including ${form.originalQuantity} from this batch)` : '') +
-                      (form.batchQuantity && parseFloat(form.batchQuantity) > (editId ? milkStock.quantityAvailable + (form.originalQuantity || 0) : milkStock.quantityAvailable) ?
+                      `Current stock: ${parseFloat(milkStock.quantityAvailable)} ${milkStock.unit || 'L'}` +
+                      (editId && form.originalQuantity ? ` | Available for update: ${parseFloat(milkStock.quantityAvailable) + (form.originalQuantity || 0)} ${milkStock.unit || 'L'} (including ${form.originalQuantity} from this batch)` : '') +
+                      (form.batchQuantity && parseFloat(form.batchQuantity) > (editId ? parseFloat(milkStock.quantityAvailable) + (form.originalQuantity || 0) : parseFloat(milkStock.quantityAvailable)) ?
                         ' - Quantity exceeds available milk!' : '')
                     : ''
                   }

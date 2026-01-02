@@ -13,7 +13,7 @@ import Science from "@mui/icons-material/Science";
 import { useState } from "react";
 import { useAuth } from "../../auth/useAuth";
 import MilkPriceCalculator from "../MilkPriceCalculator";
-import SNFCalculator from "../SNFCalculator";
+import CLRCalculator from "../CLRCalculator";
 
 interface Props {
   drawerWidth: number;
@@ -23,7 +23,7 @@ export default function Topbar({ drawerWidth }: Props) {
   const { logout } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [calculatorOpen, setCalculatorOpen] = useState(false);
-  const [snfCalculatorOpen, setSnfCalculatorOpen] = useState(false);
+  const [clrCalculatorOpen, setClrCalculatorOpen] = useState(false);
 
   return (
     <AppBar
@@ -64,9 +64,9 @@ export default function Topbar({ drawerWidth }: Props) {
 
         <IconButton
           color="inherit"
-          onClick={() => setSnfCalculatorOpen(true)}
+          onClick={() => setClrCalculatorOpen(true)}
           sx={{ mr: 1 }}
-          title="SNF Calculator"
+          title="CLR Calculator"
         >
           <Science />
         </IconButton>
@@ -100,10 +100,10 @@ export default function Topbar({ drawerWidth }: Props) {
         onClose={() => setCalculatorOpen(false)}
       />
 
-      {/* SNF Calculator Dialog */}
-      <SNFCalculator
-        open={snfCalculatorOpen}
-        onClose={() => setSnfCalculatorOpen(false)}
+      {/* CLR Calculator Dialog */}
+      <CLRCalculator
+        open={clrCalculatorOpen}
+        onClose={() => setClrCalculatorOpen(false)}
       />
     </AppBar>
   );

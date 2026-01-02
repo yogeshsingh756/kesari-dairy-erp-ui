@@ -21,8 +21,8 @@ interface Props {
   onClose: () => void;
 }
 
-export default function SNFCalculator({ open, onClose }: Props) {
-  const [snfResult, setSnfResult] = useState<number | null>(null);
+export default function CLRCalculator({ open, onClose }: Props) {
+  const [clrResult, setClrResult] = useState<number | null>(null);
   const [snackbar, setSnackbar] = useState<{
     type: "success" | "error";
     message: string;
@@ -30,27 +30,27 @@ export default function SNFCalculator({ open, onClose }: Props) {
 
   const [inputs, setInputs] = useState({
     fat: "",
-    clr: ""
+    snf: ""
   });
 
-  const calculateSNF = (clr: number, fat: number) => {
-    let snfRaw = (clr / 4) + (0.21 * fat) + 0.10;
-    return Math.floor(snfRaw * 100) / 100; // truncate to 2 decimal places
+  const calculateCLR = (snf: number, fat: number) => {
+    let clrRaw = 4 * (snf - (0.21 * fat) - 0.36);
+    return Math.floor(clrRaw * 100) / 100; // truncate to 2 decimal places
   };
 
   const handleCalculate = () => {
-    if (!inputs.fat || !inputs.clr) {
+    if (!inputs.fat || !inputs.snf) {
       setSnackbar({
         type: "error",
-        message: "Please enter both FAT and CLR values"
+        message: "Please enter both FAT and SNF values"
       });
       return;
     }
 
     const fatValue = parseFloat(inputs.fat);
-    const clrValue = parseFloat(inputs.clr);
+    const snfValue = parseFloat(inputs.snf);
 
-    if (isNaN(fatValue) || isNaN(clrValue)) {
+    if (isNaN(fatValue) || isNaN(snfValue)) {
       setSnackbar({
         type: "error",
         message: "Please enter valid numeric values"
@@ -58,20 +58,20 @@ export default function SNFCalculator({ open, onClose }: Props) {
       return;
     }
 
-    const result = calculateSNF(clrValue, fatValue);
-    setSnfResult(result);
+    const result = calculateCLR(snfValue, fatValue);
+    setClrResult(result);
     setSnackbar({
       type: "success",
-      message: "SNF calculated successfully"
+      message: "CLR calculated successfully"
     });
   };
 
   const handleClose = () => {
     setInputs({
       fat: "",
-      clr: ""
+      snf: ""
     });
-    setSnfResult(null);
+    setClrResult(null);
     setSnackbar(null);
     onClose();
   };
@@ -111,10 +111,10 @@ export default function SNFCalculator({ open, onClose }: Props) {
             <Science sx={{ fontSize: 32 }} />
           </Avatar>
           <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
-            SNF Calculator
+            CLR Calculator
           </Typography>
           <Typography variant="body2" sx={{ opacity: 0.9 }}>
-            Calculate SNF from FAT and CLR values
+            Calculate CLR from FAT and SNF values
           </Typography>
         </Box>
 
@@ -143,14 +143,14 @@ export default function SNFCalculator({ open, onClose }: Props) {
               />
 
               <TextField
-                label="CLR"
+                label="SNF %"
                 type="number"
                 fullWidth
-                value={inputs.clr}
-                onChange={(e) => setInputs({ ...inputs, clr: e.target.value })}
-                inputProps={{ min: 0 }}
+                value={inputs.snf}
+                onChange={(e) => setInputs({ ...inputs, snf: e.target.value })}
+                inputProps={{ step: 0.1, min: 0 }}
                 InputLabelProps={{
-                  shrink: inputs.clr ? true : undefined,
+                  shrink: inputs.snf ? true : undefined,
                 }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
@@ -164,7 +164,7 @@ export default function SNFCalculator({ open, onClose }: Props) {
               variant="contained"
               startIcon={<Calculate />}
               onClick={handleCalculate}
-              disabled={!inputs.fat || !inputs.clr}
+              disabled={!inputs.fat || !inputs.snf}
               sx={{
                 borderRadius: 2,
                 px: 4,
@@ -179,10 +179,10 @@ export default function SNFCalculator({ open, onClose }: Props) {
                 }
               }}
             >
-              Calculate SNF
+              Calculate CLR
             </Button>
 
-            {snfResult !== null && (
+            {clrResult !== null && (
               <>
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
@@ -191,13 +191,13 @@ export default function SNFCalculator({ open, onClose }: Props) {
 
                   <Paper sx={{ p: 4, bgcolor: "success.light", borderRadius: 2, textAlign: "center" }}>
                     <Typography variant="h6" sx={{ mb: 1, color: "success.main", fontWeight: 600 }}>
-                      SNF %
+                      CLR
                     </Typography>
                     <Typography variant="h3" sx={{ color: "success.main", fontWeight: 700 }}>
-                      {snfResult}%
+                      {clrResult}
                     </Typography>
                     <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
-                      Formula: (CLR ÷ 4) + (0.21 × FAT) + 0.10
+                      Formula: 4 × (SNF − (0.2 × FAT) − 0.36)
                     </Typography>
                   </Paper>
                 </Box>

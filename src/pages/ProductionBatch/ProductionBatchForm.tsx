@@ -11,11 +11,15 @@ import {
   FormControl,
   InputLabel,
   Select,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import {
   Factory,
   Save,
   Add,
+  Calculate,
+  Science,
 } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import { getProductDropdown } from "../../api/productTypes.api";
@@ -24,6 +28,8 @@ import { getUnits, getMilkStock } from "../../api/common.api";
 import { createProductionBatch, updateProductionBatch, getProductionBatchById } from "../../api/productionBatches.api";
 import AppSnackbar from "../../components/AppSnackbar";
 import Loader from "../../components/Loader";
+import MilkPriceCalculator from "../../components/MilkPriceCalculator";
+import CLRCalculator from "../../components/CLRCalculator";
 
 interface Props {
   open: boolean;
@@ -44,6 +50,10 @@ export default function ProductionBatchForm({ open, onClose, onSuccess, editId }
   const [ingredients, setIngredients] = useState<any[]>([]);
   const [units, setUnits] = useState<any[]>([]);
   const [milkStock, setMilkStock] = useState<any>(null);
+
+  // Calculator states
+  const [milkCalculatorOpen, setMilkCalculatorOpen] = useState(false);
+  const [clrCalculatorOpen, setClrCalculatorOpen] = useState(false);
 
   const [form, setForm] = useState<any>({
     productId: "",
@@ -245,9 +255,42 @@ export default function ProductionBatchForm({ open, onClose, onSuccess, editId }
             p: 2,
             background: "linear-gradient(135deg, #FF6347 0%, #FF4500 100%)",
             color: "white",
-            textAlign: "center"
+            position: "relative"
           }}
         >
+          {/* Calculator Buttons */}
+          <Box sx={{ position: "absolute", top: 16, right: 16, display: "flex", gap: 1 }}>
+            <Tooltip title="Milk Price Calculator">
+              <IconButton
+                onClick={() => setMilkCalculatorOpen(true)}
+                sx={{
+                  color: "white",
+                  bgcolor: "rgba(255,255,255,0.1)",
+                  "&:hover": {
+                    bgcolor: "rgba(255,255,255,0.2)"
+                  }
+                }}
+              >
+                <Calculate sx={{ fontSize: 20 }} />
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip title="CLR Calculator">
+              <IconButton
+                onClick={() => setClrCalculatorOpen(true)}
+                sx={{
+                  color: "white",
+                  bgcolor: "rgba(255,255,255,0.1)",
+                  "&:hover": {
+                    bgcolor: "rgba(255,255,255,0.2)"
+                  }
+                }}
+              >
+                <Science sx={{ fontSize: 20 }} />
+              </IconButton>
+            </Tooltip>
+          </Box>
+
           <Avatar
             sx={{
               width: 64,
@@ -578,6 +621,18 @@ export default function ProductionBatchForm({ open, onClose, onSuccess, editId }
 
       {/* Loader for data loading in edit mode */}
       <Loader open={dataLoading} message="Loading batch data..." />
+
+      {/* Milk Price Calculator */}
+      <MilkPriceCalculator
+        open={milkCalculatorOpen}
+        onClose={() => setMilkCalculatorOpen(false)}
+      />
+
+      {/* CLR Calculator */}
+      <CLRCalculator
+        open={clrCalculatorOpen}
+        onClose={() => setClrCalculatorOpen(false)}
+      />
     </>
   );
 }

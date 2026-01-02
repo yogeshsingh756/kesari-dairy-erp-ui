@@ -24,14 +24,7 @@ export default function PurchaseCreate() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
-  // Mock raw materials data - replace with API call later
-  const rawMaterials = [
-    { id: 1, name: "Sugar", unit: "Kg" },
-    { id: 2, name: "Packaging Boxes", unit: "Pieces" },
-    { id: 3, name: "Flavor Extract", unit: "Liters" },
-    { id: 4, name: "Milk Powder", unit: "Kg" },
-    { id: 5, name: "Salt", unit: "Kg" },
-  ];
+
 
   // MILK
   const [milk, setMilk] = useState({

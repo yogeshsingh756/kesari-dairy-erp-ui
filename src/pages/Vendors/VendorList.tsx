@@ -30,7 +30,6 @@ import {
   Phone,
 } from "@mui/icons-material";
 import { getVendorsPaged, deleteVendor } from "../../api/vendors.api";
-import { useNavigate } from "react-router-dom";
 import { hasPermission } from "../../utils/hasPermission";
 import { useAuth } from "../../auth/useAuth";
 import Loader from "../../components/Loader";
@@ -47,7 +46,6 @@ interface Vendor {
 
 export default function VendorList() {
   const { state } = useAuth();
-  const navigate = useNavigate();
 
   const [rows, setRows] = useState<Vendor[]>([]);
   const [totalRecords, setTotalRecords] = useState(0);

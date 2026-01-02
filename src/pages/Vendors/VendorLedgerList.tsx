@@ -34,8 +34,6 @@ import {
   Visibility,
 } from "@mui/icons-material";
 import { getVendorLedger, getVendorTransactions } from "../../api/vendors.api";
-import { hasPermission } from "../../utils/hasPermission";
-import { useAuth } from "../../auth/useAuth";
 import Loader from "../../components/Loader";
 
 interface VendorLedgerItem {
@@ -48,7 +46,6 @@ interface VendorLedgerItem {
 }
 
 export default function VendorLedgerList() {
-  const { state } = useAuth();
 
   const [ledger, setLedger] = useState<VendorLedgerItem[]>([]);
   const [totalRecords, setTotalRecords] = useState(0);

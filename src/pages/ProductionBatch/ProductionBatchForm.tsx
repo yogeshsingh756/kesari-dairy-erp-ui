@@ -20,7 +20,7 @@ import {
 import { useEffect, useState } from "react";
 import { getProductDropdown } from "../../api/productTypes.api";
 import { getIngredientDropdown } from "../../api/ingredientTypes.api";
-import { getUnits } from "../../api/common.api";
+import { getUnits, getMilkStock } from "../../api/common.api";
 import { createProductionBatch, updateProductionBatch, getProductionBatchById } from "../../api/productionBatches.api";
 import AppSnackbar from "../../components/AppSnackbar";
 import Loader from "../../components/Loader";
@@ -43,6 +43,7 @@ export default function ProductionBatchForm({ open, onClose, onSuccess, editId }
   const [products, setProducts] = useState<any[]>([]);
   const [ingredients, setIngredients] = useState<any[]>([]);
   const [units, setUnits] = useState<any[]>([]);
+  const [milkStock, setMilkStock] = useState<any>(null);
 
   const [form, setForm] = useState<any>({
     productId: "",
@@ -79,15 +80,17 @@ export default function ProductionBatchForm({ open, onClose, onSuccess, editId }
     const loadData = async () => {
       setDataLoading(true);
       try {
-        const [productsRes, ingredientsRes, unitsRes] = await Promise.all([
+        const [productsRes, ingredientsRes, unitsRes, milkStockRes] = await Promise.all([
           getProductDropdown(),
           getIngredientDropdown(),
-          getUnits()
+          getUnits(),
+          getMilkStock()
         ]);
 
         setProducts(productsRes.data);
         setIngredients(ingredientsRes.data);
         setUnits(unitsRes.data);
+        setMilkStock(milkStockRes.data);
 
         // If editing, load existing batch data
         if (editId) {
@@ -111,7 +114,8 @@ export default function ProductionBatchForm({ open, onClose, onSuccess, editId }
             snf: batchData.snf || "",
             processingFeePerUnit: batchData.processingFeePerUnit || "",
             batchDate: batchData.batchDate ? new Date(batchData.batchDate).toLocaleDateString('en-CA') : new Date().toLocaleDateString('en-CA'),
-            ingredients: formattedIngredients
+            ingredients: formattedIngredients,
+            originalQuantity: batchData.batchQuantity // Store original quantity for edit validation
           });
         }
       } catch (error) {
@@ -147,6 +151,27 @@ export default function ProductionBatchForm({ open, onClose, onSuccess, editId }
       setSnackbar({
         type: "error",
         message: "Please fill all required fields"
+      });
+      return;
+    }
+
+    // Check milk stock availability
+    const requestedQuantity = parseFloat(form.batchQuantity || "0");
+
+    if (!milkStock) {
+      setSnackbar({
+        type: "error",
+        message: "Unable to verify milk stock availability. Please try again."
+      });
+      return;
+    }
+
+    const availableQuantity = editId ? milkStock.quantityAvailable + (form.originalQuantity || 0) : milkStock.quantityAvailable;
+
+    if (requestedQuantity > availableQuantity) {
+      setSnackbar({
+        type: "error",
+        message: `Batch quantity (${requestedQuantity}) exceeds available milk stock (${availableQuantity})`
       });
       return;
     }
@@ -290,19 +315,30 @@ export default function ProductionBatchForm({ open, onClose, onSuccess, editId }
                 }}
               />
 
-              <TextField
-                label="Batch Quantity"
-                type="number"
-                fullWidth
-                value={form.batchQuantity}
-                onChange={(e) => setForm({ ...form, batchQuantity: e.target.value })}
-                required
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2,
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1, minWidth: 300 }}>
+                <TextField
+                  label="Batch Quantity"
+                  type="number"
+                  fullWidth
+                  value={form.batchQuantity}
+                  onChange={(e) => setForm({ ...form, batchQuantity: e.target.value })}
+                  required
+                  error={form.batchQuantity && milkStock && parseFloat(form.batchQuantity) > (editId ? milkStock.quantityAvailable + (form.originalQuantity || 0) : milkStock.quantityAvailable)}
+                  helperText={
+                    milkStock ?
+                      `Available milk: ${milkStock.quantityAvailable} ${milkStock.unit || 'L'}` +
+                      (editId && form.originalQuantity ? ` (including ${form.originalQuantity} from this batch)` : '') +
+                      (form.batchQuantity && parseFloat(form.batchQuantity) > (editId ? milkStock.quantityAvailable + (form.originalQuantity || 0) : milkStock.quantityAvailable) ?
+                        ' - Quantity exceeds available milk!' : '')
+                    : ''
                   }
-                }}
-              />
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 2,
+                    }
+                  }}
+                />
+              </Box>
 
               <FormControl fullWidth sx={{
                 "& .MuiOutlinedInput-root": {

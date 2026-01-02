@@ -282,7 +282,7 @@ export default function ProductionBatchList() {
                   <TableCell sx={{ fontWeight: 600 }}>Selling Price/Unit</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Total Cost</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Packets Status</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Packaging Status</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -341,8 +341,8 @@ export default function ProductionBatchList() {
                       <Chip
                         label={
                           r.totalPacketsCreated > 0
-                            ? `Packets Created (${r.totalPacketsCreated})`
-                            : "Packets not Created"
+                            ? `Packaging Created (${r.totalPacketsCreated})`
+                            : "Packaging not Created"
                         }
                         size="small"
                         color={r.totalPacketsCreated > 0 ? "success" : "warning"}
@@ -387,22 +387,24 @@ export default function ProductionBatchList() {
                           </Tooltip>
                         )}
 
-                        <Tooltip title="Calculate Packaging">
-                          <IconButton
-                            size="small"
-                            sx={{
-                              bgcolor: "secondary.light",
-                              color: "secondary.main",
-                              "&:hover": {
-                                bgcolor: "secondary.main",
-                                color: "white"
-                              }
-                            }}
-                            onClick={() => openPackagingDialog(r.id)}
-                          >
-                            <Calculate fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                        {r.totalPacketsCreated <= 0 && (
+                          <Tooltip title="Calculate Packaging">
+                            <IconButton
+                              size="small"
+                              sx={{
+                                bgcolor: "secondary.light",
+                                color: "secondary.main",
+                                "&:hover": {
+                                  bgcolor: "secondary.main",
+                                  color: "white"
+                                }
+                              }}
+                              onClick={() => openPackagingDialog(r.id)}
+                            >
+                              <Calculate fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
 
                         {hasPermission(state.permissions, "PRODUCTION_BATCH_DELETE") && r.totalPacketsCreated <= 0 && (
                           <Tooltip title="Delete Batch">

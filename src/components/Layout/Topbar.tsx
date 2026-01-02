@@ -8,8 +8,12 @@ import {
   Box,
 } from "@mui/material";
 import AccountCircle from "@mui/icons-material/AccountCircle";
+import Calculate from "@mui/icons-material/Calculate";
+import Science from "@mui/icons-material/Science";
 import { useState } from "react";
 import { useAuth } from "../../auth/useAuth";
+import MilkPriceCalculator from "../MilkPriceCalculator";
+import SNFCalculator from "../SNFCalculator";
 
 interface Props {
   drawerWidth: number;
@@ -18,6 +22,8 @@ interface Props {
 export default function Topbar({ drawerWidth }: Props) {
   const { logout } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [calculatorOpen, setCalculatorOpen] = useState(false);
+  const [snfCalculatorOpen, setSnfCalculatorOpen] = useState(false);
 
   return (
     <AppBar
@@ -49,6 +55,24 @@ export default function Topbar({ drawerWidth }: Props) {
 
         <IconButton
           color="inherit"
+          onClick={() => setCalculatorOpen(true)}
+          sx={{ mr: 1 }}
+          title="Milk Price Calculator"
+        >
+          <Calculate />
+        </IconButton>
+
+        <IconButton
+          color="inherit"
+          onClick={() => setSnfCalculatorOpen(true)}
+          sx={{ mr: 1 }}
+          title="SNF Calculator"
+        >
+          <Science />
+        </IconButton>
+
+        <IconButton
+          color="inherit"
           onClick={(e) => setAnchorEl(e.currentTarget)}
         >
           <AccountCircle />
@@ -69,6 +93,18 @@ export default function Topbar({ drawerWidth }: Props) {
           </MenuItem>
         </Menu>
       </Toolbar>
+
+      {/* Milk Price Calculator Dialog */}
+      <MilkPriceCalculator
+        open={calculatorOpen}
+        onClose={() => setCalculatorOpen(false)}
+      />
+
+      {/* SNF Calculator Dialog */}
+      <SNFCalculator
+        open={snfCalculatorOpen}
+        onClose={() => setSnfCalculatorOpen(false)}
+      />
     </AppBar>
   );
 }

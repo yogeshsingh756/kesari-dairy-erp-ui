@@ -17,6 +17,12 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Dialog,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  Tooltip,
+  Stack,
 } from "@mui/material";
 import {
   AccountBalance,
@@ -25,8 +31,9 @@ import {
   AttachMoney,
   Payment,
   Pending,
+  Visibility,
 } from "@mui/icons-material";
-import { getVendorLedger } from "../../api/vendors.api";
+import { getVendorLedger, getVendorTransactions } from "../../api/vendors.api";
 import { hasPermission } from "../../utils/hasPermission";
 import { useAuth } from "../../auth/useAuth";
 import Loader from "../../components/Loader";
@@ -54,6 +61,11 @@ export default function VendorLedgerList() {
   // Filters
   const [search, setSearch] = useState("");
   const [vendorTypeFilter, setVendorTypeFilter] = useState("");
+
+  // Transaction dialog
+  const [transactionDialogOpen, setTransactionDialogOpen] = useState(false);
+  const [selectedVendorTransactions, setSelectedVendorTransactions] = useState<any[]>([]);
+  const [selectedVendorName, setSelectedVendorName] = useState("");
 
   const loadLedger = async (searchTerm = search, vendorType = vendorTypeFilter, pageNum = page, pageSize = rowsPerPage) => {
     setLoading(true);
@@ -91,6 +103,21 @@ export default function VendorLedgerList() {
 
     return () => clearTimeout(timeoutId);
   }, [search, vendorTypeFilter]);
+
+  const handleViewTransactions = async (vendorId: number, vendorName: string) => {
+    setLoading(true);
+    try {
+      const res = await getVendorTransactions(vendorId);
+      setSelectedVendorTransactions(res.data || []);
+      setSelectedVendorName(vendorName);
+      setTransactionDialogOpen(true);
+    } catch (error) {
+      console.error('Failed to load vendor transactions:', error);
+      setSelectedVendorTransactions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 } }}>
@@ -198,6 +225,7 @@ export default function VendorLedgerList() {
                   <TableCell sx={{ fontWeight: 600 }}>Paid Amount</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Pending Amount</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -261,6 +289,26 @@ export default function VendorLedgerList() {
                         sx={{ fontWeight: 500 }}
                       />
                     </TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={1}>
+                        <Tooltip title="View Transactions">
+                          <IconButton
+                            size="small"
+                            sx={{
+                              bgcolor: "info.light",
+                              color: "info.main",
+                              "&:hover": {
+                                bgcolor: "info.main",
+                                color: "white"
+                              }
+                            }}
+                            onClick={() => handleViewTransactions(item.vendorId, item.vendorName)}
+                          >
+                            <Visibility fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -293,6 +341,157 @@ export default function VendorLedgerList() {
           )}
         </Box>
       </Paper>
+
+      {/* Transaction Details Dialog */}
+      <Dialog
+        open={transactionDialogOpen}
+        onClose={() => setTransactionDialogOpen(false)}
+        fullWidth
+        maxWidth="lg"
+        sx={{
+          "& .MuiDialog-paper": {
+            borderRadius: 3,
+            overflow: "hidden"
+          }
+        }}
+      >
+        {/* Header */}
+        <Box
+          sx={{
+            p: 3,
+            background: "linear-gradient(135deg, #FF8C00 0%, #E67E22 100%)",
+            color: "white"
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Avatar sx={{ bgcolor: "rgba(255,255,255,0.2)" }}>
+              <AccountBalance />
+            </Avatar>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                {selectedVendorName} - Transaction Details
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                Complete transaction history for this vendor
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+
+        <DialogContent sx={{ p: 0 }}>
+          {selectedVendorTransactions.length === 0 ? (
+            <Box sx={{ textAlign: "center", py: 6, color: "text.secondary" }}>
+              <AccountBalance sx={{ fontSize: 48, mb: 2, opacity: 0.5 }} />
+              <Typography variant="h6">No transactions found</Typography>
+              <Typography variant="body2">
+                This vendor doesn't have any recorded transactions yet
+              </Typography>
+            </Box>
+          ) : (
+            <Table sx={{ minWidth: 650 }}>
+              <TableHead>
+                <TableRow sx={{ bgcolor: "grey.50" }}>
+                  <TableCell sx={{ fontWeight: 600 }}>Transaction ID</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Raw Material</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Quantity</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Unit</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Rate/Unit</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Amount</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Total Amount</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Paid Amount</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Pending Amount</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Entry Date</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {selectedVendorTransactions.map((transaction: any) => (
+                  transaction.purchaseRawMaterialDtos?.map((material: any, index: number) => (
+                    <TableRow
+                      key={`${transaction.id}-${index}`}
+                      sx={{
+                        "&:hover": {
+                          bgcolor: "grey.50"
+                        }
+                      }}
+                    >
+                      {index === 0 && (
+                        <>
+                          <TableCell sx={{ fontWeight: 500 }} rowSpan={transaction.purchaseRawMaterialDtos.length}>
+                            <Chip
+                              label={`#${transaction.id}`}
+                              size="small"
+                              sx={{
+                                bgcolor: "primary.main",
+                                color: "white",
+                                fontWeight: 600
+                              }}
+                            />
+                          </TableCell>
+                        </>
+                      )}
+                      <TableCell sx={{ fontWeight: 500 }}>
+                        <Chip
+                          label={material.rawMaterialType}
+                          size="small"
+                          color="secondary"
+                          sx={{ fontWeight: 500 }}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 500 }}>
+                        {material.quantity}
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 500 }}>
+                        {material.unit}
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 500, color: "info.main" }}>
+                        ₹{material.ratePerUnit?.toFixed(2) || "0.00"}
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 500, color: "primary.main" }}>
+                        ₹{material.amount?.toFixed(2) || "0.00"}
+                      </TableCell>
+                      {index === 0 && (
+                        <>
+                          <TableCell sx={{ fontWeight: 500, color: "primary.main" }} rowSpan={transaction.purchaseRawMaterialDtos.length}>
+                            ₹{transaction.totalAmount?.toFixed(2) || "0.00"}
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: 500, color: "success.main" }} rowSpan={transaction.purchaseRawMaterialDtos.length}>
+                            ₹{transaction.paidAmount?.toFixed(2) || "0.00"}
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: 500, color: transaction.pendingAmount > 0 ? "warning.main" : "success.main" }} rowSpan={transaction.purchaseRawMaterialDtos.length}>
+                            ₹{transaction.pendingAmount?.toFixed(2) || "0.00"}
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: 500 }} rowSpan={transaction.purchaseRawMaterialDtos.length}>
+                            {new Date(transaction.entryDate).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell rowSpan={transaction.purchaseRawMaterialDtos.length}>
+                            <Chip
+                              label={transaction.pendingAmount > 0 ? "Pending" : "Settled"}
+                              size="small"
+                              color={transaction.pendingAmount > 0 ? "warning" : "success"}
+                              sx={{ fontWeight: 500 }}
+                            />
+                          </TableCell>
+                        </>
+                      )}
+                    </TableRow>
+                  ))
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button
+            onClick={() => setTransactionDialogOpen(false)}
+            variant="outlined"
+            sx={{ borderRadius: 2, px: 3 }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Loading */}
       <Loader open={loading} message="Loading vendor ledger..." />

@@ -31,3 +31,7 @@ export const deleteVendor = (id: number) =>
 // VENDOR LEDGER
 export const getVendorLedger = (params?: any) =>
   api.get("/vendor-ledger", { params, ...auth() });
+
+// VENDOR TRANSACTIONS
+export const getVendorTransactions = (vendorId: number) =>
+  api.get(`/vendor-ledger/vendor/${vendorId}/transactions`, auth());

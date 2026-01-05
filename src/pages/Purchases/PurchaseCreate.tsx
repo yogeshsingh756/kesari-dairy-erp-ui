@@ -116,6 +116,7 @@ export default function PurchaseCreate() {
       rate: ""
     });
     setMilkResult(null);
+    setIsManualEntry(false); // Reset manual entry mode
 
     // Clear other material form data and results
     setOther({
@@ -391,18 +392,34 @@ export default function PurchaseCreate() {
                   onClick={() => {
                     setIsManualEntry(!isManualEntry);
                     if (!isManualEntry) {
-                      // Switching to manual entry, clear calculated results
-                      setMilkResult(null);
-                    } else {
-                      // Switching back to calculator mode, clear ALL data to start fresh
-                      setMilkResult(null);
+                      // Switching to manual entry, clear everything for fresh start
                       setMilk({
                         quantity: "",
                         fat: "",
                         clr: "",
                         rate: ""
                       });
-                      // Clear vendor-related data as well
+                      setMilkResult({
+                        snfPercent: 0,
+                        fatKg: 0,
+                        snfKg: 0,
+                        avgRatePerKg: 0,
+                        totalAmount: 0,
+                        isManualCalculation: true,
+                        message: ""
+                      });
+                      // Clear vendor and payment data for fresh start
+                      setSelectedVendor("");
+                      setNewVendor({
+                        vendorName: "",
+                        contactNumber: "",
+                        vendorType: ""
+                      });
+                      setPaidAmount("");
+                    } else {
+                      // Switching back to calculator mode, clear results to force recalculation
+                      setMilkResult(null);
+                      // Clear vendor and payment data for fresh start
                       setSelectedVendor("");
                       setNewVendor({
                         vendorName: "",
@@ -426,6 +443,43 @@ export default function PurchaseCreate() {
                   }}
                 >
                   {isManualEntry ? "Use Calculator" : "Manual Entry"}
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => {
+                    // Clear all form data
+                    setMilk({
+                      quantity: "",
+                      fat: "",
+                      clr: "",
+                      rate: ""
+                    });
+                    setMilkResult(null);
+                    setIsManualEntry(false);
+                    setSelectedVendor("");
+                    setNewVendor({
+                      vendorName: "",
+                      contactNumber: "",
+                      vendorType: ""
+                    });
+                    setPaidAmount("");
+                  }}
+                  sx={{
+                    borderRadius: 2,
+                    px: 4,
+                    py: 1.5,
+                    borderColor: "error.main",
+                    color: "error.main",
+                    "&:hover": {
+                      borderColor: "error.dark",
+                      bgcolor: "error.light",
+                      color: "error.dark"
+                    }
+                  }}
+                >
+                  Clear All
                 </Button>
               </Box>
 
@@ -678,6 +732,8 @@ export default function PurchaseCreate() {
                     InputLabelProps={{
                       shrink: paidAmount ? true : undefined,
                     }}
+                    disabled={!milkResult?.totalAmount || milkResult.totalAmount === 0}
+                    helperText={!milkResult?.totalAmount || milkResult.totalAmount === 0 ? "Please enter Total Amount first" : ""}
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         borderRadius: 2,
@@ -690,9 +746,14 @@ export default function PurchaseCreate() {
                     <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 3, mb: 4 }}>
                       <Paper sx={{ p: 3, bgcolor: "warning.light", borderRadius: 2 }}>
                         <Typography variant="body2" color="warning.main">Pending Amount</Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 600, color: "warning.main" }}>
-                          ₹{(milkResult.totalAmount - parseFloat(paidAmount || "0")).toFixed(2)}
+                        <Typography variant="h6" sx={{ fontWeight: 600, color: parseFloat(paidAmount) > milkResult.totalAmount ? "error.main" : "warning.main" }}>
+                          ₹{Math.max(0, milkResult.totalAmount - parseFloat(paidAmount || "0")).toFixed(2)}
                         </Typography>
+                        {parseFloat(paidAmount) > milkResult.totalAmount && (
+                          <Typography variant="body2" sx={{ color: "error.main", mt: 1, fontSize: "0.8rem" }}>
+                            Overpayment: ₹{(parseFloat(paidAmount) - milkResult.totalAmount).toFixed(2)}
+                          </Typography>
+                        )}
                       </Paper>
                     </Box>
                   )}
@@ -716,7 +777,7 @@ export default function PurchaseCreate() {
 
                       handleMilkConfirmWithVendor(totalAmount, vendorData);
                     }}
-                    disabled={loading || !selectedVendor || !paidAmount || parseFloat(paidAmount) > milkResult.totalAmount}
+                    disabled={loading || !selectedVendor || !paidAmount || (isManualEntry && (!milk.quantity || !milkResult?.avgRatePerKg || !milkResult?.totalAmount))}
                     sx={{
                       borderRadius: 2,
                       px: 4,
@@ -1006,9 +1067,14 @@ export default function PurchaseCreate() {
                     <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 3, mb: 4 }}>
                       <Paper sx={{ p: 3, bgcolor: "warning.light", borderRadius: 2 }}>
                         <Typography variant="body2" color="warning.main">Pending Amount</Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 600, color: "warning.main" }}>
-                          ₹{(otherAmount - parseFloat(paidAmount || "0")).toFixed(2)}
+                        <Typography variant="h6" sx={{ fontWeight: 600, color: parseFloat(paidAmount) > otherAmount ? "error.main" : "warning.main" }}>
+                          ₹{Math.max(0, otherAmount - parseFloat(paidAmount || "0")).toFixed(2)}
                         </Typography>
+                        {parseFloat(paidAmount) > otherAmount && (
+                          <Typography variant="body2" sx={{ color: "error.main", mt: 1, fontSize: "0.8rem" }}>
+                            Overpayment: ₹{(parseFloat(paidAmount) - otherAmount).toFixed(2)}
+                          </Typography>
+                        )}
                       </Paper>
                     </Box>
                   )}
@@ -1032,7 +1098,7 @@ export default function PurchaseCreate() {
 
                       handleOtherConfirmWithVendor(totalAmount, vendorData);
                     }}
-                    disabled={loading || !selectedVendor || !paidAmount || parseFloat(paidAmount) > otherAmount}
+                    disabled={loading || !selectedVendor || !paidAmount}
                     sx={{
                       borderRadius: 2,
                       px: 4,

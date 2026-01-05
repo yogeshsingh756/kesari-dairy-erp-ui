@@ -50,17 +50,27 @@ export default function MilkPriceCalculator({ open, onClose }: Props) {
     setLoading(true);
     try {
       const res = await calculateMilk(milk);
-      setMilkResult(res.data);
-      setSnackbar({
-        type: "success",
-        message: "Milk price calculated successfully"
-      });
+
+      if (res.data.isSuccess) {
+        setMilkResult(res.data);
+        setSnackbar({
+          type: "success",
+          message: res.data.message || "Milk price calculated successfully"
+        });
+      } else {
+        setSnackbar({
+          type: "error",
+          message: res.data.message || "Failed to calculate milk price"
+        });
+        setMilkResult(null);
+      }
     } catch (error) {
       console.error('Failed to calculate milk price:', error);
       setSnackbar({
         type: "error",
         message: "Failed to calculate milk price"
       });
+      setMilkResult(null);
     } finally {
       setLoading(false);
     }

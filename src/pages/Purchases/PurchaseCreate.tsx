@@ -34,6 +34,7 @@ export default function PurchaseCreate() {
     rate: ""
   });
   const [milkResult, setMilkResult] = useState<any>(null);
+  const [isManualEntry, setIsManualEntry] = useState(false);
 
   // OTHER
   const [other, setOther] = useState<any>({
@@ -335,27 +336,139 @@ export default function PurchaseCreate() {
                 />
               </Box>
 
-              <Button
-                variant="contained"
-                startIcon={<Calculate />}
-                onClick={handleMilkCalculate}
-                disabled={loading || !milk.quantity || !milk.fat || !milk.clr || !milk.rate}
-                sx={{
-                  borderRadius: 2,
-                  px: 4,
-                  py: 1.5,
-                  background: "linear-gradient(135deg, #2196F3 0%, #1976D2 100%)",
-                  "&:hover": {
-                    background: "linear-gradient(135deg, #1976D2 0%, #1565C0 100%)"
-                  },
-                  "&:disabled": {
-                    background: "#ccc",
-                    color: "#666"
-                  }
-                }}
-              >
-                Calculate Milk Rate
-              </Button>
+              <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+                <Button
+                  variant="contained"
+                  startIcon={<Calculate />}
+                  onClick={handleMilkCalculate}
+                  disabled={loading || !milk.quantity || !milk.fat || !milk.clr || !milk.rate}
+                  sx={{
+                    borderRadius: 2,
+                    px: 4,
+                    py: 1.5,
+                    background: "linear-gradient(135deg, #2196F3 0%, #1976D2 100%)",
+                    "&:hover": {
+                      background: "linear-gradient(135deg, #1976D2 0%, #1565C0 100%)"
+                    },
+                    "&:disabled": {
+                      background: "#ccc",
+                      color: "#666"
+                    }
+                  }}
+                >
+                  Calculate Milk Rate
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  onClick={() => {
+                    setIsManualEntry(!isManualEntry);
+                    if (!isManualEntry) {
+                      // Switching to manual entry, clear calculated results
+                      setMilkResult(null);
+                    }
+                  }}
+                  sx={{
+                    borderRadius: 2,
+                    px: 4,
+                    py: 1.5,
+                    borderColor: "warning.main",
+                    color: "warning.main",
+                    "&:hover": {
+                      borderColor: "warning.dark",
+                      bgcolor: "warning.light",
+                      color: "warning.dark"
+                    }
+                  }}
+                >
+                  {isManualEntry ? "Use Calculator" : "Manual Entry"}
+                </Button>
+              </Box>
+
+              {isManualEntry && (
+                <Box sx={{ mt: 3, p: 3, bgcolor: "grey.50", borderRadius: 2, border: "1px solid", borderColor: "grey.200" }}>
+                  <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: "warning.main" }}>
+                    Manual Entry Mode
+                  </Typography>
+
+                  <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 3, mb: 3 }}>
+                    <TextField
+                      label="SNF %"
+                      type="number"
+                      fullWidth
+                      value={milkResult?.snfPercent || ""}
+                      onChange={(e) => setMilkResult({ ...milkResult, snfPercent: parseFloat(e.target.value) })}
+                      inputProps={{ step: 0.01 }}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                        }
+                      }}
+                    />
+
+                    <TextField
+                      label="Fat (Kg)"
+                      type="number"
+                      fullWidth
+                      value={milkResult?.fatKg || ""}
+                      onChange={(e) => setMilkResult({ ...milkResult, fatKg: parseFloat(e.target.value) })}
+                      inputProps={{ step: 0.01 }}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                        }
+                      }}
+                    />
+
+                    <TextField
+                      label="SNF (Kg)"
+                      type="number"
+                      fullWidth
+                      value={milkResult?.snfKg || ""}
+                      onChange={(e) => setMilkResult({ ...milkResult, snfKg: parseFloat(e.target.value) })}
+                      inputProps={{ step: 0.01 }}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                        }
+                      }}
+                    />
+
+                    <TextField
+                      label="Avg Rate/Kg (₹)"
+                      type="number"
+                      fullWidth
+                      value={milkResult?.avgRatePerKg || ""}
+                      onChange={(e) => setMilkResult({ ...milkResult, avgRatePerKg: parseFloat(e.target.value) })}
+                      inputProps={{ step: 0.01 }}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                        }
+                      }}
+                    />
+                  </Box>
+
+                  <TextField
+                    label="Total Amount (₹)"
+                    type="number"
+                    fullWidth
+                    value={milkResult?.totalAmount || ""}
+                    onChange={(e) => setMilkResult({ ...milkResult, totalAmount: parseFloat(e.target.value) })}
+                    inputProps={{ step: 0.01 }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 2,
+                      },
+                      mb: 3
+                    }}
+                  />
+
+                  <Typography variant="body2" sx={{ color: "warning.main", fontWeight: 500 }}>
+                    Note: Enter all calculation values manually. This bypasses the API calculation.
+                  </Typography>
+                </Box>
+              )}
 
               {milkResult && (
                 <>

@@ -140,9 +140,36 @@ export default function PurchaseCreate() {
     setLoading(true);
     try {
       const res = await calculateMilk(milk);
-      setMilkResult(res.data);
+
+      if (res.data.isSuccess) {
+        setMilkResult(res.data);
+        setIsManualEntry(false); // Ensure we're in calculator mode
+      } else {
+        // API failed, switch to manual mode
+        setMilkResult({
+          snfPercent: 0,
+          fatKg: 0,
+          snfKg: 0,
+          avgRatePerKg: 0,
+          totalAmount: 0,
+          isManualCalculation: true,
+          message: res.data.message
+        });
+        setIsManualEntry(true); // Force manual entry mode
+      }
     } catch (error) {
       console.error('Failed to calculate milk:', error);
+      // On error, also switch to manual mode
+      setMilkResult({
+        snfPercent: 0,
+        fatKg: 0,
+        snfKg: 0,
+        avgRatePerKg: 0,
+        totalAmount: 0,
+        isManualCalculation: true,
+        message: "Calculation failed. Please enter manually."
+      });
+      setIsManualEntry(true);
     } finally {
       setLoading(false);
     }
@@ -366,6 +393,9 @@ export default function PurchaseCreate() {
                     if (!isManualEntry) {
                       // Switching to manual entry, clear calculated results
                       setMilkResult(null);
+                    } else {
+                      // Switching back to calculator mode, clear manual results
+                      setMilkResult(null);
                     }
                   }}
                   sx={{
@@ -388,45 +418,26 @@ export default function PurchaseCreate() {
               {isManualEntry && (
                 <Box sx={{ mt: 3, p: 3, bgcolor: "grey.50", borderRadius: 2, border: "1px solid", borderColor: "grey.200" }}>
                   <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: "warning.main" }}>
-                    Manual Entry Mode
+                    Manual Calculation Mode
                   </Typography>
 
-                  <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 3, mb: 3 }}>
-                    <TextField
-                      label="SNF %"
-                      type="number"
-                      fullWidth
-                      value={milkResult?.snfPercent || ""}
-                      onChange={(e) => setMilkResult({ ...milkResult, snfPercent: parseFloat(e.target.value) })}
-                      inputProps={{ step: 0.01 }}
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: 2,
-                        }
-                      }}
-                    />
+                  {/* Show API error message if available */}
+                  {milkResult?.isManualCalculation && milkResult?.message && (
+                    <Paper sx={{ p: 2, mb: 3, bgcolor: "error.light", borderRadius: 2 }}>
+                      <Typography variant="body2" sx={{ color: "error.main", fontWeight: 500 }}>
+                        {milkResult.message}
+                      </Typography>
+                    </Paper>
+                  )}
 
+                  {/* Only show these 3 fields for manual calculation */}
+                  <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 3, mb: 3 }}>
                     <TextField
-                      label="Fat (Kg)"
+                      label="Quantity (Liters)"
                       type="number"
                       fullWidth
-                      value={milkResult?.fatKg || ""}
-                      onChange={(e) => setMilkResult({ ...milkResult, fatKg: parseFloat(e.target.value) })}
-                      inputProps={{ step: 0.01 }}
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: 2,
-                        }
-                      }}
-                    />
-
-                    <TextField
-                      label="SNF (Kg)"
-                      type="number"
-                      fullWidth
-                      value={milkResult?.snfKg || ""}
-                      onChange={(e) => setMilkResult({ ...milkResult, snfKg: parseFloat(e.target.value) })}
-                      inputProps={{ step: 0.01 }}
+                      value={milk.quantity}
+                      onChange={(e) => setMilk({ ...milk, quantity: e.target.value })}
                       sx={{
                         "& .MuiOutlinedInput-root": {
                           borderRadius: 2,
@@ -439,7 +450,21 @@ export default function PurchaseCreate() {
                       type="number"
                       fullWidth
                       value={milkResult?.avgRatePerKg || ""}
-                      onChange={(e) => setMilkResult({ ...milkResult, avgRatePerKg: parseFloat(e.target.value) })}
+                      onChange={(e) => setMilkResult({ ...milkResult, avgRatePerKg: parseFloat(e.target.value) || 0 })}
+                      inputProps={{ step: 0.01 }}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                        }
+                      }}
+                    />
+
+                    <TextField
+                      label="Total Amount (₹)"
+                      type="number"
+                      fullWidth
+                      value={milkResult?.totalAmount || ""}
+                      onChange={(e) => setMilkResult({ ...milkResult, totalAmount: parseFloat(e.target.value) || 0 })}
                       inputProps={{ step: 0.01 }}
                       sx={{
                         "& .MuiOutlinedInput-root": {
@@ -449,23 +474,8 @@ export default function PurchaseCreate() {
                     />
                   </Box>
 
-                  <TextField
-                    label="Total Amount (₹)"
-                    type="number"
-                    fullWidth
-                    value={milkResult?.totalAmount || ""}
-                    onChange={(e) => setMilkResult({ ...milkResult, totalAmount: parseFloat(e.target.value) })}
-                    inputProps={{ step: 0.01 }}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: 2,
-                      },
-                      mb: 3
-                    }}
-                  />
-
                   <Typography variant="body2" sx={{ color: "warning.main", fontWeight: 500 }}>
-                    Note: Enter all calculation values manually. This bypasses the API calculation.
+                    Please enter the calculation values manually.
                   </Typography>
                 </Box>
               )}

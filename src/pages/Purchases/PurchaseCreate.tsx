@@ -394,8 +394,22 @@ export default function PurchaseCreate() {
                       // Switching to manual entry, clear calculated results
                       setMilkResult(null);
                     } else {
-                      // Switching back to calculator mode, clear manual results
+                      // Switching back to calculator mode, clear ALL data to start fresh
                       setMilkResult(null);
+                      setMilk({
+                        quantity: "",
+                        fat: "",
+                        clr: "",
+                        rate: ""
+                      });
+                      // Clear vendor-related data as well
+                      setSelectedVendor("");
+                      setNewVendor({
+                        vendorName: "",
+                        contactNumber: "",
+                        vendorType: ""
+                      });
+                      setPaidAmount("");
                     }
                   }}
                   sx={{

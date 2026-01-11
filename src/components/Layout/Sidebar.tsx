@@ -177,6 +177,22 @@ export default function Sidebar({ drawerWidth }: Props) {
           </ListItemButton>
         )}
 
+        {hasPermission(state.permissions, "EMPLOYEE_STOCK_ASSIGN") && (
+          <ListItemButton
+            onClick={() => navigate("/employee-stock")}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              "&:hover": {
+                background: "linear-gradient(135deg, #FF8C00 0%, #E67E22 100%)",
+                color: "white"
+              }
+            }}
+          >
+            <ListItemText primary="Employee Stock" />
+          </ListItemButton>
+        )}
+
         {hasPermission(state.permissions, "VENDORS_VIEW") && (
           <ListItemButton
             onClick={() => navigate("/vendors")}

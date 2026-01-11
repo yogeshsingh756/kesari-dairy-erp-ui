@@ -17,6 +17,7 @@ import PurchaseDetail from "../pages/Purchases/PurchaseDetail";
 import InventoryList from "../pages/Inventory/InventoryList";
 import VendorList from "../pages/Vendors/VendorList";
 import VendorLedgerList from "../pages/Vendors/VendorLedgerList";
+import EmployeeStockList from "../pages/EmployeeStock/EmployeeStockList";
 
 export default function AppRoutes() {
   return (
@@ -74,6 +75,11 @@ export default function AppRoutes() {
         <Route path="/vendor-ledger" element={
           <ProtectedRoute requiredPermission="VENDORS_LEDGERS_VIEW">
             <VendorLedgerList />
+          </ProtectedRoute>
+        } />
+        <Route path="/employee-stock" element={
+          <ProtectedRoute requiredPermission="EMPLOYEE_STOCK_ASSIGN">
+            <EmployeeStockList />
           </ProtectedRoute>
         } />
       </Route>

@@ -18,6 +18,7 @@ import InventoryList from "../pages/Inventory/InventoryList";
 import VendorList from "../pages/Vendors/VendorList";
 import VendorLedgerList from "../pages/Vendors/VendorLedgerList";
 import EmployeeStockList from "../pages/EmployeeStock/EmployeeStockList";
+import Sales from "../pages/Sales/Sales";
 
 export default function AppRoutes() {
   return (
@@ -80,6 +81,11 @@ export default function AppRoutes() {
         <Route path="/employee-stock" element={
           <ProtectedRoute requiredPermission="EMPLOYEE_STOCK_ASSIGN">
             <EmployeeStockList />
+          </ProtectedRoute>
+        } />
+        <Route path="/sales" element={
+          <ProtectedRoute requiredPermission="EMPLOYEE_SALES_CREATE">
+            <Sales />
           </ProtectedRoute>
         } />
       </Route>

@@ -58,8 +58,20 @@ export default function Login() {
         navigate("/ingredient-types");
       } else if (hasPermission(userPermissions, "PRODUCTION_BATCH_VIEW")) {
         navigate("/production-batches");
+      } else if (hasPermission(userPermissions, "PURCHASE_VIEW")) {
+        navigate("/purchases");
+      } else if (hasPermission(userPermissions, "INVENTORY_VIEW")) {
+        navigate("/inventory");
+      } else if (hasPermission(userPermissions, "EMPLOYEE_STOCK_ASSIGN")) {
+        navigate("/employee-stock");
+      } else if (hasPermission(userPermissions, "EMPLOYEE_SALES_CREATE")) {
+        navigate("/sales");
+      } else if (hasPermission(userPermissions, "VENDORS_VIEW")) {
+        navigate("/vendors");
+      } else if (hasPermission(userPermissions, "VENDORS_LEDGERS_VIEW")) {
+        navigate("/vendor-ledger");
       } else {
-        // No view permissions - show warning toast and stay on login page
+        // No permissions to access any modules - show warning toast and stay on login page
         setSnackbar({
           type: "info",
           message: "Login successful, but you don't have permissions to access any modules. Please contact administrator to assign permissions.",

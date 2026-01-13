@@ -14,3 +14,19 @@ export const getMilkStock = () =>
 
 export const getStats = () =>
   api.get("/common/stats", auth());
+
+// Get dashboard summary data
+export const getDashboardSummary = async () => {
+  const response = await api.get('/common/summary', auth());
+  return response.data;
+};
+
+export interface DashboardSummary {
+  todaySalesAmount: number;
+  todaySalesQuantity: number;
+  todayCollection: number;
+  pendingAmount: number;
+  totalCustomers: number;
+  lowStockProducts: number;
+  employeeActiveStock: number;
+}

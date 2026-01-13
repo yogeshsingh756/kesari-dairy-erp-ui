@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Typography, Box, Card, CardContent, Avatar } from "@mui/material";
-import { People, Security, VpnKey, Business, Factory, Inventory } from "@mui/icons-material";
+import { People, Security, VpnKey, Business, Factory, Inventory, TrendingUp, ShoppingCart, AccountBalance, Receipt, Store, Warning, Inventory2 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import { getStats } from "../api/common.api";
+import { getStats, getDashboardSummary, type DashboardSummary } from "../api/common.api";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -13,6 +13,16 @@ export default function Dashboard() {
     productTypes: 0,
     ingredientTypes: 0,
     productionBatches: 0
+  });
+
+  const [summaryData, setSummaryData] = useState<DashboardSummary>({
+    todaySalesAmount: 0,
+    todaySalesQuantity: 0,
+    todayCollection: 0,
+    pendingAmount: 0,
+    totalCustomers: 0,
+    lowStockProducts: 0,
+    employeeActiveStock: 0
   });
 
   const stats = [
@@ -66,6 +76,65 @@ export default function Dashboard() {
     }
   ];
 
+  const summaryStats = [
+    {
+      title: "Today's Sales Amount",
+      value: `₹${summaryData.todaySalesAmount.toLocaleString()}`,
+      icon: <TrendingUp />,
+      color: "linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)",
+      iconBg: "#4CAF50",
+      route: "/sales-view"
+    },
+    {
+      title: "Today's Sales Quantity",
+      value: summaryData.todaySalesQuantity.toString(),
+      icon: <ShoppingCart />,
+      color: "linear-gradient(135deg, #2196F3 0%, #1976D2 100%)",
+      iconBg: "#2196F3",
+      route: "/sales-view"
+    },
+    {
+      title: "Today's Collection",
+      value: `₹${summaryData.todayCollection.toLocaleString()}`,
+      icon: <AccountBalance />,
+      color: "linear-gradient(135deg, #FF9800 0%, #F57C00 100%)",
+      iconBg: "#FF9800",
+      route: "/sales-view"
+    },
+    {
+      title: "Pending Amount",
+      value: `₹${summaryData.pendingAmount.toLocaleString()}`,
+      icon: <Receipt />,
+      color: "linear-gradient(135deg, #F44336 0%, #D32F2F 100%)",
+      iconBg: "#F44336",
+      route: "/sales-view"
+    },
+    {
+      title: "Total Customers",
+      value: summaryData.totalCustomers.toString(),
+      icon: <Store />,
+      color: "linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%)",
+      iconBg: "#9C27B0",
+      route: "/sales-view"
+    },
+    {
+      title: "Low Stock Products",
+      value: summaryData.lowStockProducts.toString(),
+      icon: <Warning />,
+      color: "linear-gradient(135deg, #FF5722 0%, #E64A19 100%)",
+      iconBg: "#FF5722",
+      route: "/inventory"
+    },
+    {
+      title: "Employee Active Stock",
+      value: summaryData.employeeActiveStock.toString(),
+      icon: <Inventory2 />,
+      color: "linear-gradient(135deg, #607D8B 0%, #455A64 100%)",
+      iconBg: "#607D8B",
+      route: "/employee-stock"
+    }
+  ];
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -75,7 +144,18 @@ export default function Dashboard() {
         console.error('Failed to load dashboard stats:', error);
       }
     };
+
+    const fetchSummary = async () => {
+      try {
+        const summary = await getDashboardSummary();
+        setSummaryData(summary);
+      } catch (error) {
+        console.error('Failed to load dashboard summary:', error);
+      }
+    };
+
     fetchStats();
+    fetchSummary();
   }, []);
 
   const quickActions = [
@@ -189,6 +269,57 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         ))}
+      </Box>
+
+      {/* Summary Stats */}
+      <Box sx={{ mb: 6 }}>
+        <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+          Today's Business Summary
+        </Typography>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
+          {summaryStats.map((stat, index) => (
+            <Card
+              key={index}
+              onClick={() => navigate(stat.route)}
+              sx={{
+                flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(25% - 18px)" },
+                background: stat.color,
+                color: "white",
+                borderRadius: 3,
+                boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+                transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                cursor: "pointer",
+                "&:hover": {
+                  transform: "translateY(-8px)",
+                  boxShadow: "0 16px 48px rgba(0,0,0,0.2)"
+                }
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <Box>
+                    <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+                      {stat.value}
+                    </Typography>
+                    <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                      {stat.title}
+                    </Typography>
+                  </Box>
+                  <Avatar
+                    sx={{
+                      bgcolor: stat.iconBg,
+                      width: 56,
+                      height: 56,
+                      boxShadow: "0 4px 16px rgba(0,0,0,0.2)"
+                    }}
+                  >
+                    {stat.icon}
+                  </Avatar>
+                </Box>
+              </CardContent>
+            </Card>
+          ))}
+        </Box>
       </Box>
 
       {/* Quick Actions */}

@@ -18,7 +18,9 @@ import InventoryList from "../pages/Inventory/InventoryList";
 import VendorList from "../pages/Vendors/VendorList";
 import VendorLedgerList from "../pages/Vendors/VendorLedgerList";
 import EmployeeStockList from "../pages/EmployeeStock/EmployeeStockList";
+import ReadyToAssignStock from "../pages/EmployeeStock/ReadyToAssignStock";
 import Sales from "../pages/Sales/Sales";
+import SalesView from "../pages/Sales/SalesView";
 
 export default function AppRoutes() {
   return (
@@ -83,9 +85,19 @@ export default function AppRoutes() {
             <EmployeeStockList />
           </ProtectedRoute>
         } />
+        <Route path="/ready-to-assign-stock" element={
+          <ProtectedRoute requiredPermission="FINISHED_STOCK_VIEW">
+            <ReadyToAssignStock />
+          </ProtectedRoute>
+        } />
         <Route path="/sales" element={
           <ProtectedRoute requiredPermission="EMPLOYEE_SALES_CREATE">
             <Sales />
+          </ProtectedRoute>
+        } />
+        <Route path="/sales-view" element={
+          <ProtectedRoute requiredPermission="SALES_VIEW">
+            <SalesView />
           </ProtectedRoute>
         } />
       </Route>

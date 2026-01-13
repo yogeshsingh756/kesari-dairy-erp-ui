@@ -64,8 +64,12 @@ export default function Login() {
         navigate("/inventory");
       } else if (hasPermission(userPermissions, "EMPLOYEE_STOCK_ASSIGN")) {
         navigate("/employee-stock");
+      } else if (hasPermission(userPermissions, "FINISHED_STOCK_VIEW")) {
+        navigate("/ready-to-assign-stock");
       } else if (hasPermission(userPermissions, "EMPLOYEE_SALES_CREATE")) {
         navigate("/sales");
+      } else if (hasPermission(userPermissions, "SALES_VIEW")) {
+        navigate("/sales-view");
       } else if (hasPermission(userPermissions, "VENDORS_VIEW")) {
         navigate("/vendors");
       } else if (hasPermission(userPermissions, "VENDORS_LEDGERS_VIEW")) {

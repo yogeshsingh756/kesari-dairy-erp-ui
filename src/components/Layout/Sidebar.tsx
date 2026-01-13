@@ -49,22 +49,6 @@ export default function Sidebar({ drawerWidth }: Props) {
           </ListItemButton>
         )}
 
-        {hasPermission(state.permissions, "USER_VIEW") && (
-          <ListItemButton
-            onClick={() => navigate("/users")}
-            sx={{
-              borderRadius: 2,
-              mb: 1,
-              "&:hover": {
-                background: "linear-gradient(135deg, #FF9933 0%, #E67E22 100%)",
-                color: "white"
-              }
-            }}
-          >
-            <ListItemText primary="Users" />
-          </ListItemButton>
-        )}
-
         {hasPermission(state.permissions, "ROLE_VIEW") && (
           <ListItemButton
             onClick={() => navigate("/roles")}
@@ -81,6 +65,22 @@ export default function Sidebar({ drawerWidth }: Props) {
           </ListItemButton>
         )}
 
+        {hasPermission(state.permissions, "USER_VIEW") && (
+          <ListItemButton
+            onClick={() => navigate("/users")}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              "&:hover": {
+                background: "linear-gradient(135deg, #FF9933 0%, #E67E22 100%)",
+                color: "white"
+              }
+            }}
+          >
+            <ListItemText primary="Users" />
+          </ListItemButton>
+        )}
+
         {hasPermission(state.permissions, "PERMISSION_VIEW") && (
           <ListItemButton
             onClick={() => navigate("/permissions")}
@@ -94,54 +94,6 @@ export default function Sidebar({ drawerWidth }: Props) {
             }}
           >
             <ListItemText primary="Permissions" />
-          </ListItemButton>
-        )}
-
-        {hasPermission(state.permissions, "PRODUCT_TYPE_VIEW") && (
-          <ListItemButton
-            onClick={() => navigate("/product-types")}
-            sx={{
-              borderRadius: 2,
-              mb: 1,
-              "&:hover": {
-                background: "linear-gradient(135deg, #DAA520 0%, #B8860B 100%)",
-                color: "white"
-              }
-            }}
-          >
-            <ListItemText primary="Product Types" />
-          </ListItemButton>
-        )}
-
-        {hasPermission(state.permissions, "INGREDIENT_TYPE_VIEW") && (
-          <ListItemButton
-            onClick={() => navigate("/ingredient-types")}
-            sx={{
-              borderRadius: 2,
-              mb: 1,
-              "&:hover": {
-                background: "linear-gradient(135deg, #FF6B35 0%, #E55A2B 100%)",
-                color: "white"
-              }
-            }}
-          >
-            <ListItemText primary="Ingredient Types" />
-          </ListItemButton>
-        )}
-
-        {hasPermission(state.permissions, "PRODUCTION_BATCH_VIEW") && (
-          <ListItemButton
-            onClick={() => navigate("/production-batches")}
-            sx={{
-              borderRadius: 2,
-              mb: 1,
-              "&:hover": {
-                background: "linear-gradient(135deg, #FF6347 0%, #FF4500 100%)",
-                color: "white"
-              }
-            }}
-          >
-            <ListItemText primary="Production Batches" />
           </ListItemButton>
         )}
 
@@ -177,6 +129,102 @@ export default function Sidebar({ drawerWidth }: Props) {
           </ListItemButton>
         )}
 
+        {hasPermission(state.permissions, "VENDORS_VIEW") && (
+          <ListItemButton
+            onClick={() => navigate("/vendors")}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              "&:hover": {
+                background: "linear-gradient(135deg, #FF8C00 0%, #E67E22 100%)",
+                color: "white"
+              }
+            }}
+          >
+            <ListItemText primary="Vendors" />
+          </ListItemButton>
+        )}
+
+        {hasPermission(state.permissions, "VENDORS_LEDGERS_VIEW") && (
+          <ListItemButton
+            onClick={() => navigate("/vendor-ledger")}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              "&:hover": {
+                background: "linear-gradient(135deg, #FF8C00 0%, #E67E22 100%)",
+                color: "white"
+              }
+            }}
+          >
+            <ListItemText primary="Vendors Ledger" />
+          </ListItemButton>
+        )}
+
+        {hasPermission(state.permissions, "INGREDIENT_TYPE_VIEW") && (
+          <ListItemButton
+            onClick={() => navigate("/ingredient-types")}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              "&:hover": {
+                background: "linear-gradient(135deg, #FF6B35 0%, #E55A2B 100%)",
+                color: "white"
+              }
+            }}
+          >
+            <ListItemText primary="Ingredient Types" />
+          </ListItemButton>
+        )}
+
+        {hasPermission(state.permissions, "PRODUCT_TYPE_VIEW") && (
+          <ListItemButton
+            onClick={() => navigate("/product-types")}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              "&:hover": {
+                background: "linear-gradient(135deg, #DAA520 0%, #B8860B 100%)",
+                color: "white"
+              }
+            }}
+          >
+            <ListItemText primary="Product Types" />
+          </ListItemButton>
+        )}
+
+        {hasPermission(state.permissions, "PRODUCTION_BATCH_VIEW") && (
+          <ListItemButton
+            onClick={() => navigate("/production-batches")}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              "&:hover": {
+                background: "linear-gradient(135deg, #FF6347 0%, #FF4500 100%)",
+                color: "white"
+              }
+            }}
+          >
+            <ListItemText primary="Production Batches" />
+          </ListItemButton>
+        )}
+
+        {hasPermission(state.permissions, "FINISHED_STOCK_VIEW") && (
+          <ListItemButton
+            onClick={() => navigate("/ready-to-assign-stock")}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              "&:hover": {
+                background: "linear-gradient(135deg, #FF8C00 0%, #E67E22 100%)",
+                color: "white"
+              }
+            }}
+          >
+            <ListItemText primary="Ready to Assign Stock" />
+          </ListItemButton>
+        )}
+
         {hasPermission(state.permissions, "EMPLOYEE_STOCK_ASSIGN") && (
           <ListItemButton
             onClick={() => navigate("/employee-stock")}
@@ -209,9 +257,9 @@ export default function Sidebar({ drawerWidth }: Props) {
           </ListItemButton>
         )}
 
-        {hasPermission(state.permissions, "VENDORS_VIEW") && (
+        {hasPermission(state.permissions, "SALES_VIEW") && (
           <ListItemButton
-            onClick={() => navigate("/vendors")}
+            onClick={() => navigate("/sales-view")}
             sx={{
               borderRadius: 2,
               mb: 1,
@@ -221,23 +269,7 @@ export default function Sidebar({ drawerWidth }: Props) {
               }
             }}
           >
-            <ListItemText primary="Vendors" />
-          </ListItemButton>
-        )}
-
-        {hasPermission(state.permissions, "VENDORS_LEDGERS_VIEW") && (
-          <ListItemButton
-            onClick={() => navigate("/vendor-ledger")}
-            sx={{
-              borderRadius: 2,
-              mb: 1,
-              "&:hover": {
-                background: "linear-gradient(135deg, #FF8C00 0%, #E67E22 100%)",
-                color: "white"
-              }
-            }}
-          >
-            <ListItemText primary="Vendors Ledger" />
+            <ListItemText primary="Sales Transaction View" />
           </ListItemButton>
         )}
       </List>

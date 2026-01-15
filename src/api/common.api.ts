@@ -25,7 +25,11 @@ export interface DashboardSummary {
   todaySalesAmount: number;
   todaySalesQuantity: number;
   todayCollection: number;
+  todaysPendingAmount: number;
+  todaysPendingDelta: number;
+  totalCollectedAmount: number;
   pendingAmount: number;
+  totalQuantitySold: number;
   totalCustomers: number;
   lowStockProducts: number;
   employeeActiveStock: number;

@@ -70,6 +70,8 @@ export default function Login() {
         navigate("/sales");
       } else if (hasPermission(userPermissions, "SALES_VIEW")) {
         navigate("/sales-view");
+      } else if (hasPermission(userPermissions, "CUSTOMER_LEDGER_VIEW")) {
+        navigate("/customer-ledger");
       } else if (hasPermission(userPermissions, "VENDORS_VIEW")) {
         navigate("/vendors");
       } else if (hasPermission(userPermissions, "VENDORS_LEDGERS_VIEW")) {

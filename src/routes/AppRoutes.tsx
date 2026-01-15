@@ -21,6 +21,7 @@ import EmployeeStockList from "../pages/EmployeeStock/EmployeeStockList";
 import ReadyToAssignStock from "../pages/EmployeeStock/ReadyToAssignStock";
 import Sales from "../pages/Sales/Sales";
 import SalesView from "../pages/Sales/SalesView";
+import CustomerLedgerView from "../pages/CustomerLedger/CustomerLedgerView";
 
 export default function AppRoutes() {
   return (
@@ -98,6 +99,11 @@ export default function AppRoutes() {
         <Route path="/sales-view" element={
           <ProtectedRoute requiredPermission="SALES_VIEW">
             <SalesView />
+          </ProtectedRoute>
+        } />
+        <Route path="/customer-ledger" element={
+          <ProtectedRoute requiredPermission="CUSTOMER_LEDGER_VIEW">
+            <CustomerLedgerView />
           </ProtectedRoute>
         } />
       </Route>

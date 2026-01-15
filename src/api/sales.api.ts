@@ -109,4 +109,82 @@ export interface SalesRecord {
 export interface SalesResponse {
   items: SalesRecord[];
   totalRecords: number;
+};
+
+// Customer Ledger View interfaces
+export interface CustomerLedgerRecord {
+  customerId: number;
+  customerName: string;
+  mobile: string;
+  totalSales: number;
+  totalPaid: number;
+  outstandingAmount: number;
+  lastTransactionDate: string;
 }
+
+export interface CustomerLedgerResponse {
+  items: CustomerLedgerRecord[];
+  totalRecords: number;
+}
+
+// Get customer outstanding amounts with pagination and optional customer filter
+export const getCustomerOutstanding = async (
+  pageNumber: number = 1,
+  pageSize: number = 10,
+  customerId?: number
+) => {
+  const params = new URLSearchParams({
+    pageNumber: pageNumber.toString(),
+    pageSize: pageSize.toString(),
+  });
+
+  if (customerId) params.append('customerId', customerId.toString());
+
+  const response = await axios.get(`/customers/customer-outstanding?${params.toString()}`, auth());
+  return response.data;
+};
+
+// Customer Ledger Detail interfaces
+export interface CustomerLedgerDetail {
+  entryDate: string;
+  referenceType: string;
+  referenceId: number;
+  debitAmount: number;
+  creditAmount: number;
+  balanceAfter: number;
+}
+
+export interface CustomerLedgerDetailResponse {
+  items: CustomerLedgerDetail[];
+  totalRecords: number;
+}
+
+// Get customer ledger details with pagination
+export const getCustomerLedgerDetails = async (
+  customerId: number,
+  pageNumber: number = 1,
+  pageSize: number = 10
+) => {
+  const params = new URLSearchParams({
+    pageNumber: pageNumber.toString(),
+    pageSize: pageSize.toString(),
+  });
+
+  const response = await axios.get(`/customers/${customerId}/ledger?${params.toString()}`, auth());
+  return response.data;
+};
+
+// Payment collection interface
+export interface CollectPaymentRequest {
+  customerId: number;
+  amountPaid: number;
+  paymentMode: string;
+  paymentDate: string;
+  remarks: string;
+}
+
+// Collect payment from customer
+export const collectPayment = async (request: CollectPaymentRequest) => {
+  const response = await axios.post('/sales/collect', request, auth());
+  return response.data;
+};

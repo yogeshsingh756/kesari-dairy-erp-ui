@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Typography, Box, Card, CardContent, Avatar } from "@mui/material";
-import { People, Security, VpnKey, Business, Factory, Inventory, TrendingUp, ShoppingCart, AccountBalance, Receipt, Store, Warning, Inventory2 } from "@mui/icons-material";
+import { People, Security, VpnKey, Business, Factory, Inventory, TrendingUp, ShoppingCart, AccountBalance, Receipt, Store, Warning, Inventory2, Timeline, Assessment } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { getStats, getDashboardSummary, type DashboardSummary } from "../api/common.api";
 
@@ -19,7 +19,11 @@ export default function Dashboard() {
     todaySalesAmount: 0,
     todaySalesQuantity: 0,
     todayCollection: 0,
+    todaysPendingAmount: 0,
+    todaysPendingDelta: 0,
+    totalCollectedAmount: 0,
     pendingAmount: 0,
+    totalQuantitySold: 0,
     totalCustomers: 0,
     lowStockProducts: 0,
     employeeActiveStock: 0
@@ -102,11 +106,27 @@ export default function Dashboard() {
       route: "/sales-view"
     },
     {
+      title: "Total Collected Amount",
+      value: `₹${summaryData.totalCollectedAmount.toLocaleString()}`,
+      icon: <Assessment />,
+      color: "linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)",
+      iconBg: "#4CAF50",
+      route: "/sales-view"
+    },
+    {
       title: "Pending Amount",
       value: `₹${summaryData.pendingAmount.toLocaleString()}`,
       icon: <Receipt />,
       color: "linear-gradient(135deg, #F44336 0%, #D32F2F 100%)",
       iconBg: "#F44336",
+      route: "/sales-view"
+    },
+    {
+      title: "Total Quantity Sold",
+      value: summaryData.totalQuantitySold.toString(),
+      icon: <ShoppingCart />,
+      color: "linear-gradient(135deg, #3F51B5 0%, #303F9F 100%)",
+      iconBg: "#3F51B5",
       route: "/sales-view"
     },
     {
@@ -274,7 +294,7 @@ export default function Dashboard() {
       {/* Summary Stats */}
       <Box sx={{ mb: 6 }}>
         <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
-          Today's Business Summary
+          Total / Today's Business Summary
         </Typography>
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
           {summaryStats.map((stat, index) => (

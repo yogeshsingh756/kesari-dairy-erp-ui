@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Typography, Box, Card, CardContent, Avatar } from "@mui/material";
-import { People, Security, VpnKey, Business, Factory, Inventory, TrendingUp, ShoppingCart, AccountBalance, Receipt, Store, Warning, Inventory2, Timeline, Assessment } from "@mui/icons-material";
+import { People, Security, VpnKey, Business, Factory, Inventory, TrendingUp, ShoppingCart, AccountBalance, Receipt, Store, Warning, Inventory2, Assessment } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { getStats, getDashboardSummary, type DashboardSummary } from "../api/common.api";
 

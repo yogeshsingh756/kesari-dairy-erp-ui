@@ -188,3 +188,58 @@ export const collectPayment = async (request: CollectPaymentRequest) => {
   const response = await axios.post('/sales/collect', request, auth());
   return response.data;
 };
+
+// Export employee sales data
+export const exportEmployeeSales = async (
+  employeeId: number,
+  fromDate: string,
+  toDate: string,
+  format: 'excel' | 'csv' = 'excel'
+) => {
+  const params = new URLSearchParams({
+    employeeId: employeeId.toString(),
+    fromDate,
+    toDate,
+    format
+  });
+
+  try {
+    const response = await axios.get(`/sales/employee-sales/export?${params.toString()}`, {
+      ...auth(),
+      responseType: 'blob',
+      validateStatus: () => true // Don't throw on 404
+    });
+    
+    // Handle error responses
+    if (response.status === 404) {
+      const text = await response.data.text();
+      try {
+        const errorData = JSON.parse(text);
+        throw errorData.message || 'No data found';
+      } catch {
+        throw 'No sales data found for the selected filters';
+      }
+    }
+    
+    if (response.status !== 200) {
+      throw 'Export failed. Please try again.';
+    }
+    
+    // Create download link
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `employee-sales-${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'xlsx' : 'csv'}`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error: any) {
+    // If it's our custom error message, re-throw it
+    if (typeof error === 'string') {
+      throw error;
+    }
+    // For other errors, use generic message
+    throw 'Export failed. Please try again.';
+  }
+};

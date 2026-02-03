@@ -143,7 +143,7 @@ export default function Dashboard() {
       icon: <Warning />,
       color: "linear-gradient(135deg, #FF5722 0%, #E64A19 100%)",
       iconBg: "#FF5722",
-      route: "/inventory"
+      route: "/ready-to-assign-stock"
     },
     {
       title: "Employee Active Stock",
@@ -245,59 +245,64 @@ export default function Dashboard() {
         </Typography>
       </Box>
 
-      {/* Stats Cards */}
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3, mb: 6 }}>
-        {stats.map((stat, index) => (
-          <Card
-            key={index}
-            onClick={() => navigate(stat.route)}
-            sx={{
-              flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(25% - 18px)" },
-              background: stat.color,
-              color: "white",
-              borderRadius: 3,
-              boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
-              transition: "transform 0.3s ease, box-shadow 0.3s ease",
-              cursor: "pointer",
-              "&:hover": {
-                transform: "translateY(-8px)",
-                boxShadow: "0 16px 48px rgba(0,0,0,0.2)"
-              }
-            }}
-          >
-            <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <Box>
-                  <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-                    {stat.value}
-                  </Typography>
-                  <Typography variant="body1" sx={{ opacity: 0.9 }}>
-                    {stat.title}
-                  </Typography>
-                </Box>
-                <Avatar
-                  sx={{
-                    bgcolor: stat.iconBg,
-                    width: 56,
-                    height: 56,
-                    boxShadow: "0 4px 16px rgba(0,0,0,0.2)"
-                  }}
-                >
-                  {stat.icon}
-                </Avatar>
-              </Box>
-            </CardContent>
-          </Card>
-        ))}
-      </Box>
-
-      {/* Summary Stats */}
+      {/* Summary Stats - Sales Section */}
       <Box sx={{ mb: 6 }}>
         <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
           Total / Today's Business Summary
         </Typography>
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
           {summaryStats.map((stat, index) => (
+            <Card
+              key={index}
+              onClick={() => navigate(stat.route)}
+              sx={{
+                flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(25% - 18px)" },
+                background: stat.color,
+                color: "white",
+                borderRadius: 3,
+                boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+                transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                cursor: "pointer",
+                "&:hover": {
+                  transform: "translateY(-8px)",
+                  boxShadow: "0 16px 48px rgba(0,0,0,0.2)"
+                }
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <Box>
+                    <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+                      {stat.value}
+                    </Typography>
+                    <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                      {stat.title}
+                    </Typography>
+                  </Box>
+                  <Avatar
+                    sx={{
+                      bgcolor: stat.iconBg,
+                      width: 56,
+                      height: 56,
+                      boxShadow: "0 4px 16px rgba(0,0,0,0.2)"
+                    }}
+                  >
+                    {stat.icon}
+                  </Avatar>
+                </Box>
+              </CardContent>
+            </Card>
+          ))}
+        </Box>
+      </Box>
+
+      {/* System Stats Cards */}
+      <Box sx={{ mb: 6 }}>
+        <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+          System Overview
+        </Typography>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
+          {stats.map((stat, index) => (
             <Card
               key={index}
               onClick={() => navigate(stat.route)}

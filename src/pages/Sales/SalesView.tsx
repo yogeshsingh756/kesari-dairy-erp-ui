@@ -14,16 +14,26 @@ import {
   TextField,
   TablePagination,
   Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import {
   Receipt,
   Refresh,
   Person,
   ShoppingCart,
+  FileDownload,
 } from "@mui/icons-material";
 import { useState, useEffect } from "react";
 import {
   getSales,
+  exportEmployeeSales,
   type SalesRecord,
   type SalesResponse,
 } from "../../api/sales.api";
@@ -31,6 +41,8 @@ import {
   getEmployeesForAssignment,
   type Employee,
 } from "../../api/employeeStock.api";
+import { hasPermission } from "../../utils/hasPermission";
+import AppSnackbar from "../../components/AppSnackbar";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -44,6 +56,25 @@ export default function SalesView() {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
+  
+  // Export modal states
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [exportEmployee, setExportEmployee] = useState<Employee | null>(null);
+  const [exportFromDate, setExportFromDate] = useState<string>("");
+  const [exportToDate, setExportToDate] = useState<string>("");
+  const [exportFormat, setExportFormat] = useState<'excel' | 'csv'>('excel');
+  const [exporting, setExporting] = useState(false);
+  
+  // Get user permissions
+  const userPermissions = JSON.parse(localStorage.getItem('permissions') || '[]');
+  const canExport = hasPermission(userPermissions, 'REPORT_EXPORT');
+  
+  // Snackbar state
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'info' as 'success' | 'error' | 'warning' | 'info'
+  });
 
   // Load employees on component mount
   useEffect(() => {
@@ -101,6 +132,49 @@ export default function SalesView() {
     loadSales();
   };
 
+  const handleExport = async () => {
+    if (!exportEmployee || !exportFromDate || !exportToDate) return;
+    
+    try {
+      setExporting(true);
+      await exportEmployeeSales(
+        exportEmployee.id,
+        exportFromDate,
+        exportToDate,
+        exportFormat
+      );
+      setExportModalOpen(false);
+      resetExportModal();
+      setSnackbar({
+        open: true,
+        message: 'Sales data exported successfully',
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Export failed:', error);
+      const errorMessage = typeof error === 'string' ? error : 'Export failed. Please try again.';
+      setSnackbar({
+        open: true,
+        message: errorMessage,
+        severity: 'error'
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const resetExportModal = () => {
+    setExportEmployee(null);
+    setExportFromDate('');
+    setExportToDate('');
+    setExportFormat('excel');
+  };
+
+  const handleExportModalClose = () => {
+    setExportModalOpen(false);
+    resetExportModal();
+  };
+
   const formatCurrency = (amount: number) => `₹${amount.toFixed(2)}`;
 
   const formatDate = (dateString: string) => {
@@ -142,21 +216,39 @@ export default function SalesView() {
                 </Typography>
               </Box>
             </Box>
-            <Button
-              variant="contained"
-              startIcon={<Refresh />}
-              onClick={handleRefresh}
-              disabled={loading}
-              sx={{
-                bgcolor: "rgba(255,255,255,0.2)",
-                "&:hover": {
-                  bgcolor: "rgba(255,255,255,0.3)"
-                },
-                borderRadius: 2,
-              }}
-            >
-              {loading ? "Loading..." : "Refresh"}
-            </Button>
+            <Box sx={{ display: "flex", gap: 2 }}>
+              {canExport && (
+                <Button
+                  variant="contained"
+                  startIcon={<FileDownload />}
+                  onClick={() => setExportModalOpen(true)}
+                  sx={{
+                    bgcolor: "rgba(255,255,255,0.2)",
+                    "&:hover": {
+                      bgcolor: "rgba(255,255,255,0.3)"
+                    },
+                    borderRadius: 2,
+                  }}
+                >
+                  Export
+                </Button>
+              )}
+              <Button
+                variant="contained"
+                startIcon={<Refresh />}
+                onClick={handleRefresh}
+                disabled={loading}
+                sx={{
+                  bgcolor: "rgba(255,255,255,0.2)",
+                  "&:hover": {
+                    bgcolor: "rgba(255,255,255,0.3)"
+                  },
+                  borderRadius: 2,
+                }}
+              >
+                {loading ? "Loading..." : "Refresh"}
+              </Button>
+            </Box>
           </Box>
         </Box>
 
@@ -435,6 +527,101 @@ export default function SalesView() {
           </Box>
         )}
       </Paper>
+      
+      {/* Export Modal */}
+      <Dialog open={exportModalOpen} onClose={handleExportModalClose} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <FileDownload />
+            Export Employee Sales Data
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3, pt: 2 }}>
+            {/* Employee Selection */}
+            <Autocomplete
+              options={employees}
+              getOptionLabel={(option) => `${option.fullName} (${option.mobileNumber || 'N/A'})`}
+              value={exportEmployee}
+              onChange={(_event, newValue) => setExportEmployee(newValue)}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Select Employee *"
+                  placeholder="Select employee"
+                />
+              )}
+              renderOption={(props, option) => (
+                <li {...props}>
+                  <Box>
+                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                      {option.fullName}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {option.username} • {option.mobileNumber || 'N/A'}
+                    </Typography>
+                  </Box>
+                </li>
+              )}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+            />
+            
+            {/* Date Range */}
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <TextField
+                label="From Date *"
+                type="date"
+                value={exportFromDate}
+                onChange={(e) => setExportFromDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+                required
+              />
+              <TextField
+                label="To Date *"
+                type="date"
+                value={exportToDate}
+                onChange={(e) => setExportToDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+                required
+              />
+            </Box>
+            
+            {/* Format Selection */}
+            <FormControl fullWidth>
+              <InputLabel>Export Format</InputLabel>
+              <Select
+                value={exportFormat}
+                label="Export Format"
+                onChange={(e) => setExportFormat(e.target.value as 'excel' | 'csv')}
+              >
+                <MenuItem value="excel">Excel (.xlsx)</MenuItem>
+                <MenuItem value="csv">CSV (.csv)</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleExportModalClose}>Cancel</Button>
+          <Button 
+            onClick={handleExport} 
+            variant="contained" 
+            disabled={exporting || !exportEmployee || !exportFromDate || !exportToDate}
+            startIcon={<FileDownload />}
+          >
+            {exporting ? "Exporting..." : "Export"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* Snackbar for notifications */}
+      <AppSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      />
     </Box>
   );
 }

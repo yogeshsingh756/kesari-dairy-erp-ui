@@ -31,6 +31,7 @@ export interface EmployeeStockAssignmentDetail {
   sellingPricePerUnit: number;
   totalAmount: number;
   remarks: string;
+  assignmentType: string;
 }
 
 export interface FinishedProductStock {
@@ -50,6 +51,14 @@ export interface Employee {
   email: string;
   role: string;
   isActive: boolean;
+}
+
+export interface ClawbackStockRequest {
+  employeeId: number;
+  productTypeId: number;
+  quantity: number;
+  clawbackDate: string;
+  remarks?: string;
 }
 
 // Assign product to employee
@@ -118,5 +127,11 @@ export const getFinishedProductStock = async () => {
 // Get employees for assignment
 export const getEmployeesForAssignment = async () => {
   const response = await axios.get('/users/byRoleName?roleName=Employee',auth());
+  return response.data;
+};
+
+// Clawback stock from employee
+export const clawbackStock = async (request: ClawbackStockRequest) => {
+  const response = await axios.post('/employee-stock/clawback', request, auth());
   return response.data;
 };

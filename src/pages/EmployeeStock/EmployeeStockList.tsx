@@ -27,6 +27,7 @@ import {
   Inventory,
   Add,
   Visibility,
+  Undo,
 } from "@mui/icons-material";
 import { useState, useEffect } from "react";
 import {
@@ -35,11 +36,13 @@ import {
   getEmployeesForAssignment,
   getFinishedProductStock,
   assignProductToEmployee,
+  clawbackStock,
   type EmployeeStockAssignment,
   type EmployeeStockAssignmentDetail,
   type Employee,
   type FinishedProductStock,
   type AssignProductToEmployeeRequest,
+  type ClawbackStockRequest,
 } from "../../api/employeeStock.api";
 
 const ITEMS_PER_PAGE = 10;
@@ -82,6 +85,17 @@ export default function EmployeeStockList() {
     message: "",
     severity: "success" as "success" | "error",
   });
+
+  // Clawback modal states
+  const [clawbackModalOpen, setClawbackModalOpen] = useState(false);
+  const [clawbackFormData, setClawbackFormData] = useState<ClawbackStockRequest>({
+    employeeId: 0,
+    productTypeId: 0,
+    quantity: 0,
+    clawbackDate: new Date().toISOString().split('T')[0],
+    remarks: "",
+  });
+  const [selectedClawbackAssignment, setSelectedClawbackAssignment] = useState<EmployeeStockAssignment | null>(null);
 
   // Load employees, products and assignments on component mount
   useEffect(() => {
@@ -320,6 +334,68 @@ export default function EmployeeStockList() {
         severity: "error",
       });
     }
+  };
+
+  const handleClawbackSubmit = async () => {
+    if (!selectedClawbackAssignment || clawbackFormData.quantity <= 0) {
+      setSnackbar({
+        open: true,
+        message: "Please fill all required fields",
+        severity: "error",
+      });
+      return;
+    }
+
+    if (clawbackFormData.quantity > selectedClawbackAssignment.totalQuantityAssigned) {
+      setSnackbar({
+        open: true,
+        message: "Quantity exceeds available stock",
+        severity: "error",
+      });
+      return;
+    }
+
+    try {
+      await clawbackStock(clawbackFormData);
+      setSnackbar({
+        open: true,
+        message: "Stock clawed back successfully",
+        severity: "success",
+      });
+      setClawbackModalOpen(false);
+      resetClawbackForm();
+      loadAssignments();
+    } catch (error) {
+      console.error('Failed to clawback stock:', error);
+      setSnackbar({
+        open: true,
+        message: "Failed to clawback stock",
+        severity: "error",
+      });
+    }
+  };
+
+  const resetClawbackForm = () => {
+    setSelectedClawbackAssignment(null);
+    setClawbackFormData({
+      employeeId: 0,
+      productTypeId: 0,
+      quantity: 0,
+      clawbackDate: new Date().toISOString().split('T')[0],
+      remarks: "",
+    });
+  };
+
+  const handleClawbackClick = (assignment: EmployeeStockAssignment) => {
+    setSelectedClawbackAssignment(assignment);
+    setClawbackFormData({
+      employeeId: assignment.employeeId,
+      productTypeId: assignment.productTypeId,
+      quantity: 0,
+      clawbackDate: new Date().toISOString().split('T')[0],
+      remarks: "",
+    });
+    setClawbackModalOpen(true);
   };
 
 
@@ -564,23 +640,42 @@ export default function EmployeeStockList() {
                           </Typography>
                         </TableCell>
                         <TableCell align="center">
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            startIcon={<Visibility />}
-                            onClick={() => handleViewDetails(assignment)}
-                            sx={{
-                              borderRadius: 2,
-                              borderColor: "primary.main",
-                              color: "primary.main",
-                              "&:hover": {
-                                borderColor: "primary.dark",
-                                bgcolor: "primary.light",
-                              }
-                            }}
-                          >
-                            View
-                          </Button>
+                          <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              startIcon={<Visibility />}
+                              onClick={() => handleViewDetails(assignment)}
+                              sx={{
+                                borderRadius: 2,
+                                borderColor: "primary.main",
+                                color: "primary.main",
+                                "&:hover": {
+                                  borderColor: "primary.dark",
+                                  bgcolor: "primary.light",
+                                }
+                              }}
+                            >
+                              View
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              startIcon={<Undo />}
+                              onClick={() => handleClawbackClick(assignment)}
+                              sx={{
+                                borderRadius: 2,
+                                borderColor: "error.main",
+                                color: "error.main",
+                                "&:hover": {
+                                  borderColor: "error.dark",
+                                  bgcolor: "error.light",
+                                }
+                              }}
+                            >
+                              Clawback
+                            </Button>
+                          </Box>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -891,6 +986,7 @@ export default function EmployeeStockList() {
                   <TableHead>
                     <TableRow sx={{ bgcolor: "grey.50" }}>
                       <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>Type</TableCell>
                       <TableCell sx={{ fontWeight: 600 }} align="right">Quantity</TableCell>
                       <TableCell sx={{ fontWeight: 600 }} align="right">Price Per Unit (₹)</TableCell>
                       <TableCell sx={{ fontWeight: 600 }} align="right">Total Amount (₹)</TableCell>
@@ -907,6 +1003,11 @@ export default function EmployeeStockList() {
                               month: 'short',
                               day: 'numeric'
                             })}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                            {detail.assignmentType}
                           </Typography>
                         </TableCell>
                         <TableCell align="right">
@@ -969,6 +1070,119 @@ export default function EmployeeStockList() {
             sx={{ borderRadius: 2 }}
           >
             Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Clawback Modal */}
+      <Dialog
+        open={clawbackModalOpen}
+        onClose={() => {
+          setClawbackModalOpen(false);
+          resetClawbackForm();
+        }}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: 3 }
+        }}
+      >
+        <DialogTitle sx={{
+          background: "linear-gradient(135deg, #f44336 0%, #d32f2f 100%)",
+          color: "white",
+          fontWeight: 600
+        }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Undo />
+            Clawback Stock
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          {selectedClawbackAssignment && (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 3, pt: 2 }}>
+              {/* Employee and Product Info */}
+              <Box sx={{ bgcolor: "grey.100", p: 2, borderRadius: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                  {selectedClawbackAssignment.productName}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Employee: {selectedClawbackAssignment.employeeName}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Available Stock: {selectedClawbackAssignment.totalQuantityAssigned} units
+                </Typography>
+              </Box>
+
+              {/* Quantity */}
+              <TextField
+                label="Quantity to Clawback *"
+                type="number"
+                value={clawbackFormData.quantity || ""}
+                onChange={(e) => {
+                  const quantity = parseInt(e.target.value) || 0;
+                  setClawbackFormData(prev => ({
+                    ...prev,
+                    quantity
+                  }));
+                }}
+                inputProps={{ min: 1, max: selectedClawbackAssignment.totalQuantityAssigned, step: 1 }}
+                helperText={`Maximum available: ${selectedClawbackAssignment.totalQuantityAssigned}`}
+                fullWidth
+              />
+
+              {/* Clawback Date */}
+              <TextField
+                label="Clawback Date *"
+                type="date"
+                value={clawbackFormData.clawbackDate}
+                onChange={(e) => setClawbackFormData(prev => ({
+                  ...prev,
+                  clawbackDate: e.target.value
+                }))}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+              />
+
+              {/* Remarks */}
+              <TextField
+                label="Remarks"
+                multiline
+                rows={3}
+                value={clawbackFormData.remarks}
+                onChange={(e) => setClawbackFormData(prev => ({
+                  ...prev,
+                  remarks: e.target.value
+                }))}
+                placeholder="Reason for clawback (optional)"
+                fullWidth
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button
+            onClick={() => {
+              setClawbackModalOpen(false);
+              resetClawbackForm();
+            }}
+            variant="outlined"
+            sx={{ borderRadius: 2 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleClawbackSubmit}
+            variant="contained"
+            disabled={!selectedClawbackAssignment || clawbackFormData.quantity <= 0}
+            sx={{
+              background: "linear-gradient(135deg, #f44336 0%, #d32f2f 100%)",
+              "&:hover": {
+                background: "linear-gradient(135deg, #e53935 0%, #c62828 100%)"
+              },
+              borderRadius: 2,
+            }}
+          >
+            Clawback Stock
           </Button>
         </DialogActions>
       </Dialog>
